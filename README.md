@@ -1,4 +1,79 @@
+# 🍞 Guía de Usuario - Sistema de Gestión Pan de Dios
 
+**Versión:** 1.4  
+**Fecha:** Septiembre 2026  
+**Desarrollado por:** MoviSoft SURL · Mypyme Cubana  
+**Para:** Panadería Pan de Dios
+
+---
+
+## 📖 Índice
+
+1. [Introducción](#introduccion)
+2. [Flujo de Trabajo General](#flujo-de-trabajo-general)
+3. [Acceso al Sistema](#acceso-al-sistema)
+4. [Dashboard General](#dashboard-general)
+5. [Almacén de Materias Primas](#almacen-de-materias-primas)
+6. [Recetas](#recetas)
+7. [Producción](#produccion)
+8. [Productos Terminados](#productos-terminados)
+9. [Control de Rendimiento](#control-de-rendimiento)
+10. [Puntos de Venta](#puntos-de-venta)
+11. [Clientes](#clientes)
+12. [Mensajeros](#mensajeros)
+13. [Pedidos](#pedidos)
+14. [Caja del Día](#caja-del-dia)
+15. [Reportes Mensuales](#reportes-mensuales)
+16. [Notificaciones](#notificaciones)
+17. [Flujo Diario Recomendado](#flujo-diario-recomendado)
+18. [Preguntas Frecuentes](#preguntas-frecuentes)
+19. [Glosario](#glosario)
+20. [Soporte Técnico](#soporte-tecnico)
+
+---
+
+## 🎯 Introducción
+
+¡Bienvenido al Sistema de Gestión de Pan de Dios!
+
+Este sistema fue diseñado específicamente para tu panadería, tomando como base el Excel que usabas diariamente. Ahora todo está **digitalizado, automatizado y conectado** para que:
+
+- ✅ No pierdas tiempo haciendo cálculos manuales
+- ✅ Detectes problemas de producción al instante
+- ✅ Controle el inventario de materias primas y productos terminados
+- ✅ Sepas exactamente cuánto ganas cada día
+- ✅ Tienes reportes listos para la ONAT
+- ✅ Recibas alertas automáticas cuando algo no va bien
+
+### ¿Qué NO es este sistema?
+
+- ❌ No reemplaza tu criterio como panadero experimentado
+- ❌ No toma decisiones por ti (solo te da información)
+- ❌ No funciona sin internet (por ahora)
+
+### ¿Qué SÍ es este sistema?
+
+- ✅ Tu asistente digital 24/7
+- ✅ La memoria de todo lo que pasa en la panadería
+- ✅ Tu herramienta para tomar mejores decisiones
+
+---
+
+## 🔄 Flujo de Trabajo General
+
+Antes de usar el sistema, entiende cómo fluye el trabajo en la panadería:
+┌─────────────┐ ┌─────────────┐ ┌──────────────┐ ┌─────────────┐
+│ MATERIAS │ ──▶ │ PRODUCCIÓN │ ──▶ │ PRODUCTOS │ ──▶ │ PUNTOS DE │
+│ PRIMAS │ │ (Horno) │ │ TERMINADOS │ │ VENTA │
+│ (Almacén) │ │ │ │ (Almacén) │ │ │
+└─────────────┘ └─────────────┘ └──────────────┘ └──────┬──────┘
+│
+▼
+┌─────────────┐
+│ CLIENTE │
+│ (Venta + │
+│ Caja) │
+└─────────────┘
 **Cada paso tiene su módulo en el sistema:**
 
 | Paso | Módulo | ¿Quién lo usa? |
