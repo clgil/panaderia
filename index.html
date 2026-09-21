@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pan de Dios · Sistema de Gestión | MoviSoft</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #faf7f2; }
+  .sidebar-item { transition: all 0.2s; }
+  .sidebar-item:hover { background: rgba(180, 83, 9, 0.1); transform: translateX(4px); }
+  .sidebar-item.active { background: linear-gradient(90deg, #b45309, #d97706); color: white; }
+  .card { background: white; border-radius: 16px; box-shadow: 0 2px 8px rgba(120,53,15,0.06); }
+  .kpi-card { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 4px solid #d97706; }
+  .badge { padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .view { display: none; }
+  .view.active { display: block; animation: fadeIn 0.3s; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  table { border-collapse: collapse; width: 100%; }
+  th { background: #fef3c7; color: #78350f; font-weight: 600; text-align: left; padding: 10px; font-size: 13px; }
+  td { padding: 10px; border-bottom: 1px solid #f5e9d3; font-size: 13px; }
+  tr:hover td { background: #fffbeb; }
+  .btn { padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+  .btn-primary { background: #b45309; color: white; }
+  .btn-primary:hover { background: #92400e; }
+  .btn-outline { border: 1px solid #d97706; color: #b45309; background: white; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .scroll-hide::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body class="text-stone-800">
+
+<div class="flex h-screen overflow-hidden">
+
+  <!-- SIDEBAR -->
+  <aside class="w-64 bg-gradient-to-b from-amber-900 to-amber-800 text-amber-50 flex flex-col shadow-2xl">
+    <div class="p-5 border-b border-amber-700">
+      <div class="flex items-center gap-3">
+        <div class="text-3xl">🍞</div>
+        <div>
+          <div class="font-bold text-lg leading-tight">Pan de Dios</div>
+          <div class="text-xs text-amber-200">Sistema de Gestión v1.0</div>
+        </div>
+      </div>
+      <div class="mt-3 text-[10px] text-amber-300 uppercase tracking-wider">MoviSoft SURL · Mypyme</div>
+    </div>
+
+    <nav class="flex-1 overflow-y-auto scroll-hide py-4">
+      <div class="px-4 text-[10px] uppercase tracking-widest text-amber-300 mb-2">Operación</div>
+      <div class="sidebar-item active px-5 py-3 cursor-pointer flex items-center gap-3" onclick="showView('dashboard', this)">
+        <span>📊</span><span>Dashboard</span>
+      </div>
+      <div class="sidebar-item px-5 py-3 cursor-pointer flex items-center gap-3" onclick="showView('almacen', this)">
+        <span>📦</span><span>Almacén</span>
+      </div>
+      <div class="sidebar-item px-5 py-3 cursor-pointer flex items-center gap-3" onclick="showView('produccion', this)">
+        <span>👨‍🍳</span><span>Producción</span>
+      </div>
+      <div class="sidebar-item px-5 py-3 cursor-pointer flex items-center gap-3" onclick="showView('puntos', this)">
+        <span>🏪</span><span>Puntos de Venta</span>
+      </div>
+
+      <div class="px-4 text-[10px] uppercase tracking-widest text-amber-300 mt-4 mb-2">CRM</div>
+      <div class="sidebar-item px-5 py-3 cursor-pointer flex items-center gap-3" onclick="showView('clientes', this)">
+        <span>👥</span><span>Clientes</span>
+      </div>
+      <div class="sidebar-item px-5 py-3 cursor-pointer flex items-center gap-3" onclick="showView('mensajeros', this)">
+        <span>🛵</span><span>Mensajeros</span>
+      </div>
+      <div class="sidebar-item px-5 py-3 cursor-pointer flex items-center gap-3" onclick="showView('pedidos', this)">
+        <span>📋</span><span>Pedidos</span>
+      </div>
+
+      <div class="px-4 text-[10px] uppercase tracking-widest text-amber-300 mt-4 mb-2">Finanzas</div>
+      <div class="sidebar-item px-5 py-3 cursor-pointer flex items-center gap-3" onclick="showView('caja', this)">
+        <span>💰</span><span>Caja del Día</span>
+      </div>
+      <div class="sidebar-item px-5 py-3 cursor-pointer flex items-center gap-3" onclick="showView('reportes', this)">
+        <span>📈</span><span>Reportes ONAT</span>
+      </div>
+    </nav>
+
+    <div class="p-4 border-t border-amber-700 text-xs">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-full bg-amber-600 flex items-center justify-center">👤</div>
+        <div>
+          <div class="font-semibold">Admin</div>
+          <div class="text-amber-300">Martes, 22 Sep 2026</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="flex-1 overflow-y-auto">
+
+    <!-- TOPBAR -->
+    <header class="bg-white border-b border-amber-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+      <div>
+        <h1 id="pageTitle" class="text-xl font-bold text-amber-900">Dashboard General</h1>
+        <p id="pageSubtitle" class="text-xs text-stone-500">Resumen operativo del día · Martes 22 de Septiembre, 2026</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <input type="text" placeholder="Buscar producto, cliente..." class="pl-9 pr-4 py-2 rounded-lg border border-amber-200 text-sm w-64 focus:outline-none focus:border-amber-500">
+          <span class="absolute left-3 top-2.5 text-stone-400">🔍</span>
+        </div>
+        <button class="btn btn-outline">+ Nueva venta</button>
+        <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center cursor-pointer">🔔</div>
+      </div>
+    </header>
+
+    <div class="p-8">
+
+      <!-- ============ DASHBOARD ============ -->
+      <section id="dashboard" class="view active">
+        <div class="grid grid-cols-4 gap-4 mb-6">
+          <div class="kpi-card card p-5">
+            <div class="text-xs text-stone-600 uppercase tracking-wider">Ventas del día</div>
+            <div class="text-3xl font-bold text-amber-900 mt-2">$ 48,750 <span class="text-sm font-normal text-stone-500">CUP</span></div>
+            <div class="text-xs text-green-700 mt-1">▲ 12.4% vs ayer</div>
+          </div>
+          <div class="kpi-card card p-5">
+            <div class="text-xs text-stone-600 uppercase tracking-wider">Masas producidas</div>
+            <div class="text-3xl font-bold text-amber-900 mt-2">127</div>
+            <div class="text-xs text-stone-500 mt-1">Harina consumida: 1,905 Kg</div>
+          </div>
+          <div class="kpi-card card p-5">
+            <div class="text-xs text-stone-600 uppercase tracking-wider">Transferencias</div>
+            <div class="text-3xl font-bold text-amber-900 mt-2">$ 31,200</div>
+            <div class="text-xs text-stone-500 mt-1">Transfermóvil · EnZona</div>
+          </div>
+          <div class="kpi-card card p-5">
+            <div class="text-xs text-stone-600 uppercase tracking-wider">Merma</div>
+            <div class="text-3xl font-bold text-red-700 mt-2">3.2%</div>
+            <div class="text-xs text-stone-500 mt-1">18 unidades · $1,560 CUP</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4 mb-6">
+          <div class="card p-5 col-span-2">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-bold text-amber-900">Ventas por punto de venta</h3>
+              <select class="text-xs border border-amber-200 rounded px-2 py-1">
+                <option>Últimos 7 días</option><option>Este mes</option>
+              </select>
+            </div>
+            <canvas id="chartVentas" height="100"></canvas>
+          </div>
+          <div class="card p-5">
+            <h3 class="font-bold text-amber-900 mb-4">Productos top</h3>
+            <div class="space-y-3">
+              <div>
+                <div class="flex justify-between text-sm mb-1"><span>🥖 Pan Suave caña 130g</span><span class="font-bold">342 uds</span></div>
+                <div class="h-2 bg-amber-100 rounded-full overflow-hidden"><div class="h-full bg-amber-600" style="width:92%"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between text-sm mb-1"><span>🍞 Pan Suave bola 40g</span><span class="font-bold">287 uds</span></div>
+                <div class="h-2 bg-amber-100 rounded-full overflow-hidden"><div class="h-full bg-amber-600" style="width:78%"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between text-sm mb-1"><span>🍕 Masa pizza 90g</span><span class="font-bold">156 uds</span></div>
+                <div class="h-2 bg-amber-100 rounded-full overflow-hidden"><div class="h-full bg-amber-600" style="width:55%"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between text-sm mb-1"><span>🥪 Pan de molde 450g</span><span class="font-bold">98 uds</span></div>
+                <div class="h-2 bg-amber-100 rounded-full overflow-hidden"><div class="h-full bg-amber-600" style="width:38%"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between text-sm mb-1"><span>🍪 Galletones paquete</span><span class="font-bold">74 uds</span></div>
+                <div class="h-2 bg-amber-100 rounded-full overflow-hidden"><div class="h-full bg-amber-600" style="width:26%"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="card p-5">
+            <h3 class="font-bold text-amber-900 mb-4">⚠️ Alertas de stock</h3>
+            <div class="space-y-2">
+              <div class="flex justify-between items-center p-3 bg-red-50 rounded-lg border-l-4 border-red-500">
+                <div><div class="font-semibold text-sm">Levadura</div><div class="text-xs text-stone-500">Código 002 · Kg</div></div>
+                <div class="text-right"><div class="font-bold text-red-700">4.2 Kg</div><div class="text-xs text-stone-500">Mínimo: 10 Kg</div></div>
+              </div>
+              <div class="flex justify-between items-center p-3 bg-yellow-50 rounded-lg border-l-4 border-yellow-500">
+                <div><div class="font-semibold text-sm">Núcleo</div><div class="text-xs text-stone-500">Código 003 · Kg</div></div>
+                <div class="text-right"><div class="font-bold text-yellow-700">8.5 Kg</div><div class="text-xs text-stone-500">Mínimo: 15 Kg</div></div>
+              </div>
+              <div class="flex justify-between items-center p-3 bg-green-50 rounded-lg border-l-4 border-green-500">
+                <div><div class="font-semibold text-sm">Harina de trigo</div><div class="text-xs text-stone-500">Código 001 · Kg</div></div>
+                <div class="text-right"><div class="font-bold text-green-700">320 Kg</div><div class="text-xs text-stone-500">OK</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="card p-5">
+            <h3 class="font-bold text-amber-900 mb-4">🛵 Mensajeros activos</h3>
+            <div class="space-y-2">
+              <div class="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
+                <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold">RL</div><div><div class="font-semibold text-sm">Roberto López</div><div class="text-xs text-stone-500">Zona Vedado · 14 pedidos</div></div></div>
+                <span class="badge bg-green-100 text-green-700">En ruta</span>
+              </div>
+              <div class="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
+                <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold">MP</div><div><div class="font-semibold text-sm">María Pérez</div><div class="text-xs text-stone-500">Zona Centro · 9 pedidos</div></div></div>
+                <span class="badge bg-green-100 text-green-700">En ruta</span>
+              </div>
+              <div class="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
+                <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-stone-400 text-white flex items-center justify-center font-bold">JS</div><div><div class="font-semibold text-sm">Jorge Sánchez</div><div class="text-xs text-stone-500">Zona Plaza · 0 pedidos</div></div></div>
+                <span class="badge bg-stone-200 text-stone-600">Disponible</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ALMACÉN ============ -->
+      <section id="almacen" class="view">
+        <div class="flex gap-2 mb-6">
+          <button class="btn btn-primary">+ Entrada al almacén</button>
+          <button class="btn btn-outline">Enviar a producción</button>
+          <button class="btn btn-outline">Inventario físico</button>
+        </div>
+
+        <div class="card p-6 mb-6">
+          <h3 class="font-bold text-amber-900 mb-4">📦 Materias primas en almacén</h3>
+          <table>
+            <thead>
+              <tr><th>Código</th><th>Producto</th><th>UM</th><th>Stock actual</th><th>Stock mínimo</th><th>Precio compra</th><th>Valor total</th><th>Estado</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>001</td><td>Harina de trigo</td><td>Kg</td><td class="font-bold">320.0</td><td>100</td><td>$85.00</td><td>$27,200</td><td><span class="badge bg-green-100 text-green-700">OK</span></td></tr>
+              <tr><td>002</td><td>Levadura</td><td>Kg</td><td class="font-bold text-red-600">4.2</td><td>10</td><td>$220.00</td><td>$924</td><td><span class="badge bg-red-100 text-red-700">Crítico</span></td></tr>
+              <tr><td>003</td><td>Núcleo</td><td>Kg</td><td class="font-bold text-yellow-600">8.5</td><td>15</td><td>$180.00</td><td>$1,530</td><td><span class="badge bg-yellow-100 text-yellow-700">Bajo</span></td></tr>
+              <tr><td>004</td><td>Sal</td><td>Kg</td><td class="font-bold">45.0</td><td>20</td><td>$25.00</td><td>$1,125</td><td><span class="badge bg-green-100 text-green-700">OK</span></td></tr>
+              <tr><td>005</td><td>Aceite</td><td>Kg</td><td class="font-bold">38.0</td><td>15</td><td>$140.00</td><td>$5,320</td><td><span class="badge bg-green-100 text-green-700">OK</span></td></tr>
+              <tr><td>006</td><td>Azúcar</td><td>Kg</td><td class="font-bold">52.0</td><td>20</td><td>$65.00</td><td>$3,380</td><td><span class="badge bg-green-100 text-green-700">OK</span></td></tr>
+              <tr><td>007</td><td>Manteca</td><td>Kg</td><td class="font-bold">28.0</td><td>15</td><td>$160.00</td><td>$4,480</td><td><span class="badge bg-green-100 text-green-700">OK</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="card p-5">
+            <h3 class="font-bold text-amber-900 mb-3">📥 Últimas entradas</h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between p-2 bg-stone-50 rounded"><span>22/09 · Harina 500 Kg</span><span class="font-bold">$42,500</span></div>
+              <div class="flex justify-between p-2 bg-stone-50 rounded"><span>20/09 · Levadura 25 Kg</span><span class="font-bold">$5,500</span></div>
+              <div class="flex justify-between p-2 bg-stone-50 rounded"><span>18/09 · Azúcar 100 Kg</span><span class="font-bold">$6,500</span></div>
+              <div class="flex justify-between p-2 bg-stone-50 rounded"><span>15/09 · Aceite 50 Kg</span><span class="font-bold">$7,000</span></div>
+            </div>
+          </div>
+          <div class="card p-5">
+            <h3 class="font-bold text-amber-900 mb-3">📤 Consumo producción hoy</h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between p-2 bg-stone-50 rounded"><span>Harina</span><span class="font-bold">1,905 Kg</span></div>
+              <div class="flex justify-between p-2 bg-stone-50 rounded"><span>Levadura</span><span class="font-bold">25.4 Kg</span></div>
+              <div class="flex justify-between p-2 bg-stone-50 rounded"><span>Núcleo</span><span class="font-bold">18.4 Kg</span></div>
+              <div class="flex justify-between p-2 bg-stone-50 rounded"><span>Sal</span><span class="font-bold">40.6 Kg</span></div>
+              <div class="flex justify-between p-2 bg-stone-50 rounded"><span>Aceite</span><span class="font-bold">38.1 Kg</span></div>
+              <div class="flex justify-between p-2 bg-stone-50 rounded"><span>Azúcar</span><span class="font-bold">51.7 Kg</span></div>
+              <div class="flex justify-between p-2 bg-stone-50 rounded"><span>Manteca</span><span class="font-bold">51.7 Kg</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PRODUCCIÓN ============ -->
+      <section id="produccion" class="view">
+        <div class="flex gap-2 mb-6">
+          <button class="btn btn-primary">+ Nueva orden de producción</button>
+          <button class="btn btn-outline">Gestionar recetas</button>
+        </div>
+
+        <div class="card p-6 mb-6">
+          <h3 class="font-bold text-amber-900 mb-4">👨‍🍳 Órdenes de producción del día</h3>
+          <table>
+            <thead>
+              <tr><th>Orden</th><th>Hora</th><th>Producto</th><th>Masas</th><th>Unidades</th><th>Estado</th><th>Responsable</th><th></th></tr>
+            </thead>
+            <tbody>
+              <tr><td>OP-2026-0847</td><td>05:30</td><td>Pan Suave caña 130g</td><td>15</td><td>180</td><td><span class="badge bg-green-100 text-green-700">Terminada</span></td><td>Carlos M.</td><td><button class="text-amber-700 text-xs">Ver</button></td></tr>
+              <tr><td>OP-2026-0848</td><td>06:15</td><td>Pan Suave bola 40g</td><td>20</td><td>240</td><td><span class="badge bg-green-100 text-green-700">Terminada</span></td><td>Carlos M.</td><td><button class="text-amber-700 text-xs">Ver</button></td></tr>
+              <tr><td>OP-2026-0849</td><td>07:00</td><td>Pan de molde 450g</td><td>10</td><td>100</td><td><span class="badge bg-blue-100 text-blue-700">En proceso</span></td><td>Luis R.</td><td><button class="text-amber-700 text-xs">Ver</button></td></tr>
+              <tr><td>OP-2026-0850</td><td>08:30</td><td>Masa pizza 90g</td><td>12</td><td>144</td><td><span class="badge bg-yellow-100 text-yellow-700">Programada</span></td><td>Pendiente</td><td><button class="text-amber-700 text-xs">Ver</button></td></tr>
+              <tr><td>OP-2026-0851</td><td>10:00</td><td>Galletones paquete</td><td>8</td><td>80</td><td><span class="badge bg-yellow-100 text-yellow-700">Programada</span></td><td>Pendiente</td><td><button class="text-amber-700 text-xs">Ver</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="card p-5">
+            <h3 class="font-bold text-amber-900 mb-3">📋 Receta: Pan Suave caña 130g</h3>
+            <div class="text-xs text-stone-500 mb-3">Por cada masa (12 unidades)</div>
+            <table class="text-sm">
+              <thead><tr><th>Insumo</th><th>Cantidad</th></tr></thead>
+              <tbody>
+                <tr><td>Harina de trigo</td><td>15.000 Kg</td></tr>
+                <tr><td>Levadura</td><td>0.200 Kg</td></tr>
+                <tr><td>Núcleo</td><td>0.145 Kg</td></tr>
+                <tr><td>Sal</td><td>0.320 Kg</td></tr>
+                <tr><td>Aceite</td><td>0.300 Kg</td></tr>
+                <tr><td>Azúcar</td><td>0.406 Kg</td></tr>
+                <tr><td>Manteca</td><td>0.406 Kg</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card p-5">
+            <h3 class="font-bold text-amber-900 mb-3">📊 Consolidado de distribución</h3>
+            <div class="text-xs text-stone-500 mb-3">Producción del día · Destinos</div>
+            <canvas id="chartDistribucion" height="180"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PUNTOS DE VENTA ============ -->
+      <section id="puntos" class="view">
+        <div class="grid grid-cols-4 gap-4 mb-6">
+          <div class="card p-5 cursor-pointer hover:shadow-lg transition" onclick="selectPunto('panaderia')">
+            <div class="text-3xl mb-2">🏭</div>
+            <div class="font-bold text-amber-900">Panadería</div>
+            <div class="text-xs text-stone-500">Venta directa</div>
+            <div class="text-xl font-bold mt-2">$18,450</div>
+          </div>
+          <div class="card p-5 cursor-pointer hover:shadow-lg transition" onclick="selectPunto('kiosko')">
+            <div class="text-3xl mb-2">🏪</div>
+            <div class="font-bold text-amber-900">Kiosko Manuelita</div>
+            <div class="text-xs text-stone-500">Punto de venta 1</div>
+            <div class="text-xl font-bold mt-2">$12,300</div>
+          </div>
+          <div class="card p-5 cursor-pointer hover:shadow-lg transition" onclick="selectPunto('pto2')">
+            <div class="text-3xl mb-2">🛒</div>
+            <div class="font-bold text-amber-900">Punto Venta 2</div>
+            <div class="text-xs text-stone-500">Punto de venta 2</div>
+            <div class="text-xl font-bold mt-2">$9,800</div>
+          </div>
+          <div class="card p-5 cursor-pointer hover:shadow-lg transition" onclick="selectPunto('mensajeros')">
+            <div class="text-3xl mb-2">🛵</div>
+            <div class="font-bold text-amber-900">Mensajeros</div>
+            <div class="text-xs text-stone-500">Delivery</div>
+            <div class="text-xl font-bold mt-2">$8,200</div>
+          </div>
+        </div>
+
+        <div class="card p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-amber-900">🏭 Panadería · Inventario y ventas</h3>
+            <div class="flex gap-2">
+              <button class="btn btn-outline">+ Transferir a punto</button>
+              <button class="btn btn-primary">+ Registrar venta</button>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Producto</th><th>Inv. Inicial</th><th>Entradas</th><th>Ventas</th><th>Merma</th><th>Inv. Final</th><th>Precio</th><th>Importe</th><th>Transf</th><th>Efectivo</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Pan Suave caña 130g</td><td>12</td><td>180</td><td>165</td><td>3</td><td>24</td><td>$85</td><td>$14,025</td><td>$9,350</td><td>$4,675</td></tr>
+              <tr><td>Pan Suave bola 40g</td><td>8</td><td>240</td><td>220</td><td>5</td><td>23</td><td>$45</td><td>$9,900</td><td>$6,435</td><td>$3,465</td></tr>
+              <tr><td>Pan de molde 450g</td><td>5</td><td>100</td><td>88</td><td>2</td><td>15</td><td>$180</td><td>$15,840</td><td>$11,088</td><td>$4,752</td></tr>
+              <tr><td>Masa pizza 90g</td><td>10</td><td>144</td><td>130</td><td>4</td><td>20</td><td>$95</td><td>$12,350</td><td>$8,028</td><td>$4,322</td></tr>
+              <tr><td>Galletones paquete</td><td>4</td><td>80</td><td>72</td><td>2</td><td>10</td><td>$120</td><td>$8,640</td><td>$5,616</td><td>$3,024</td></tr>
+              <tr><td>Bolsa pan 10 bolas 30g</td><td>6</td><td>60</td><td>58</td><td>1</td><td>7</td><td>$220</td><td>$12,760</td><td>$8,294</td><td>$4,466</td></tr>
+            </tbody>
+            <tfoot>
+              <tr class="bg-amber-50 font-bold"><td colspan="7">TOTAL</td><td>$73,515</td><td>$48,811</td><td>$24,704</td></tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============ CLIENTES ============ -->
+      <section id="clientes" class="view">
+        <div class="flex gap-2 mb-6">
+          <button class="btn btn-primary">+ Nuevo cliente</button>
+          <button class="btn btn-outline">Importar desde Excel</button>
+          <button class="btn btn-outline">Exportar lista</button>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4 mb-6">
+          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Clientes activos</div><div class="text-3xl font-bold text-amber-900 mt-1">247</div></div>
+          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Clientes mayoristas</div><div class="text-3xl font-bold text-amber-900 mt-1">18</div></div>
+          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Ticket promedio</div><div class="text-3xl font-bold text-amber-900 mt-1">$197</div></div>
+        </div>
+
+        <div class="card p-6">
+          <h3 class="font-bold text-amber-900 mb-4">👥 Directorio de clientes</h3>
+          <table>
+            <thead><tr><th>Nombre</th><th>Tipo</th><th>Teléfono</th><th>Zona</th><th>Compras mes</th><th>Última compra</th><th>Pago preferido</th></tr></thead>
+            <tbody>
+              <tr><td class="font-semibold">Restaurante La Cubana</td><td><span class="badge bg-purple-100 text-purple-700">Mayorista</span></td><td>5388-1234</td><td>Vedado</td><td>$12,450</td><td>22/09/2026</td><td>Transfermóvil</td></tr>
+              <tr><td class="font-semibold">Cafetería El Rincón</td><td><span class="badge bg-purple-100 text-purple-700">Mayorista</span></td><td>5277-5678</td><td>Centro</td><td>$8,920</td><td>22/09/2026</td><td>EnZona</td></tr>
+              <tr><td class="font-semibold">María González</td><td><span class="badge bg-blue-100 text-blue-700">Regular</span></td><td>5445-9012</td><td>Plaza</td><td>$1,240</td><td>21/09/2026</td><td>Efectivo</td></tr>
+              <tr><td class="font-semibold">Pedro Álvarez</td><td><span class="badge bg-blue-100 text-blue-700">Regular</span></td><td>5332-4455</td><td>Vedado</td><td>$890</td><td>20/09/2026</td><td>Transfermóvil</td></tr>
+              <tr><td class="font-semibold">Ana Rodríguez</td><td><span class="badge bg-green-100 text-green-700">Nuevo</span></td><td>5511-7788</td><td>Centro</td><td>$320</td><td>22/09/2026</td><td>EnZona</td></tr>
+              <tr><td class="font-semibold">Hotel Nacional (evento)</td><td><span class="badge bg-purple-100 text-purple-700">Mayorista</span></td><td>7865-4321</td><td>Vedado</td><td>$28,500</td><td>19/09/2026</td><td>Transferencia</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============ MENSAJEROS ============ -->
+      <section id="mensajeros" class="view">
+        <div class="flex gap-2 mb-6">
+          <button class="btn btn-primary">+ Nuevo mensajero</button>
+          <button class="btn btn-outline">Asignar ruta</button>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4 mb-6">
+          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Pedidos hoy</div><div class="text-3xl font-bold text-amber-900 mt-1">23</div></div>
+          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Tiempo promedio entrega</div><div class="text-3xl font-bold text-amber-900 mt-1">38 min</div></div>
+          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Ingresos delivery</div><div class="text-3xl font-bold text-amber-900 mt-1">$8,200</div></div>
+        </div>
+
+        <div class="card p-6">
+          <h3 class="font-bold text-amber-900 mb-4">🛵 Equipo de mensajeros</h3>
+          <table>
+            <thead><tr><th>Mensajero</th><th>Teléfono</th><th>Zona</th><th>Estado</th><th>Pedidos hoy</th><th>Ventas hoy</th><th>Comisión</th><th>Liquidación</th></tr></thead>
+            <tbody>
+              <tr><td class="font-semibold">Roberto López</td><td>5388-2211</td><td>Vedado</td><td><span class="badge bg-green-100 text-green-700">● En ruta</span></td><td>14</td><td>$4,820</td><td>8%</td><td>$385.60</td></tr>
+              <tr><td class="font-semibold">María Pérez</td><td>5277-3344</td><td>Centro</td><td><span class="badge bg-green-100 text-green-700">● En ruta</span></td><td>9</td><td>$3,380</td><td>8%</td><td>$270.40</td></tr>
+              <tr><td class="font-semibold">Jorge Sánchez</td><td>5445-5566</td><td>Plaza</td><td><span class="badge bg-stone-200 text-stone-600">● Disponible</span></td><td>0</td><td>$0</td><td>8%</td><td>$0</td></tr>
+              <tr><td class="font-semibold">Luis Fernández</td><td>5332-7788</td><td>Marianao</td><td><span class="badge bg-blue-100 text-blue-700">● Descanso</span></td><td>0</td><td>$0</td><td>8%</td><td>$0</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============ PEDIDOS ============ -->
+      <section id="pedidos" class="view">
+        <div class="flex gap-2 mb-6">
+          <button class="btn btn-primary">+ Nuevo pedido</button>
+          <button class="btn btn-outline">Pedidos por WhatsApp</button>
+        </div>
+
+        <div class="card p-6">
+          <h3 class="font-bold text-amber-900 mb-4">📋 Pedidos del día</h3>
+          <table>
+            <thead><tr><th>#</th><th>Cliente</th><th>Productos</th><th>Total</th><th>Pago</th><th>Entrega</th><th>Mensajero</th><th>Estado</th></tr></thead>
+            <tbody>
+              <tr><td>#1247</td><td>Restaurante La Cubana</td><td>Pan molde x20, Pizza x15</td><td>$5,850</td><td>Transfermóvil</td><td>11:30</td><td>Roberto L.</td><td><span class="badge bg-green-100 text-green-700">Entregado</span></td></tr>
+              <tr><td>#1248</td><td>María González</td><td>Bolsa 10 bolas x2</td><td>$440</td><td>EnZona</td><td>12:15</td><td>María P.</td><td><span class="badge bg-blue-100 text-blue-700">En camino</span></td></tr>
+              <tr><td>#1249</td><td>Cafetería El Rincón</td><td>Pan caña x50, Galletones x10</td><td>$5,450</td><td>Transferencia</td><td>13:00</td><td>Roberto L.</td><td><span class="badge bg-yellow-100 text-yellow-700">Preparando</span></td></tr>
+              <tr><td>#1250</td><td>Pedro Álvarez</td><td>Pan de gloria x5</td><td>$625</td><td>Efectivo</td><td>14:00</td><td>Jorge S.</td><td><span class="badge bg-stone-200 text-stone-600">Pendiente</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============ CAJA ============ -->
+      <section id="caja" class="view">
+        <div class="grid grid-cols-4 gap-4 mb-6">
+          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Efectivo</div><div class="text-3xl font-bold text-amber-900 mt-1">$17,550</div><div class="text-xs text-stone-500">36% del total</div></div>
+          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Transfermóvil</div><div class="text-3xl font-bold text-amber-900 mt-1">$19,800</div><div class="text-xs text-stone-500">41% del total</div></div>
+          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">EnZona</div><div class="text-3xl font-bold text-amber-900 mt-1">$11,400</div><div class="text-xs text-stone-500">23% del total</div></div>
+          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Total día</div><div class="text-3xl font-bold text-green-700 mt-1">$48,750</div><div class="text-xs text-stone-500">Cuadre OK ✓</div></div>
+        </div>
+
+        <div class="card p-6">
+          <h3 class="font-bold text-amber-900 mb-4">💰 Movimientos de caja del día</h3>
+          <table>
+            <thead><tr><th>Hora</th><th>Punto</th><th>Concepto</th><th>Método</th><th>Referencia</th><th>Monto</th><th>Cajero</th></tr></thead>
+            <tbody>
+              <tr><td>10:42</td><td>Panadería</td><td>Venta mostrador</td><td>Transfermóvil</td><td>TR-882714</td><td class="text-green-700 font-bold">+$850</td><td>Ana G.</td></tr>
+              <tr><td>10:38</td><td>Kiosko Manuelita</td><td>Venta mostrador</td><td>Efectivo</td><td>-</td><td class="text-green-700 font-bold">+$420</td><td>Manuel R.</td></tr>
+              <tr><td>10:25</td><td>Mensajeros</td><td>Pedido #1248</td><td>EnZona</td><td>EZ-554218</td><td class="text-green-700 font-bold">+$440</td><td>María P.</td></tr>
+              <tr><td>10:15</td><td>Punto Venta 2</td><td>Venta mostrador</td><td>Transfermóvil</td><td>TR-882710</td><td class="text-green-700 font-bold">+$1,250</td><td>Luis F.</td></tr>
+              <tr><td>09:58</td><td>Panadería</td><td>Devolución</td><td>Efectivo</td><td>-</td><td class="text-red-700 font-bold">-$85</td><td>Ana G.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============ REPORTES ============ -->
+      <section id="reportes" class="view">
+        <div class="grid grid-cols-3 gap-4 mb-6">
+          <div class="card p-5 cursor-pointer hover:shadow-lg transition">
+            <div class="text-3xl mb-2">📄</div>
+            <div class="font-bold text-amber-900">Reporte mensual ONAT</div>
+            <div class="text-xs text-stone-500 mt-1">Libro de ventas · Impuestos Mypyme</div>
+            <button class="btn btn-outline mt-3 w-full">Generar PDF</button>
+          </div>
+          <div class="card p-5 cursor-pointer hover:shadow-lg transition">
+            <div class="text-3xl mb-2">📊</div>
+            <div class="font-bold text-amber-900">Balance de producción</div>
+            <div class="text-xs text-stone-500 mt-1">Insumos vs productos · Merma</div>
+            <button class="btn btn-outline mt-3 w-full">Generar PDF</button>
+          </div>
+          <div class="card p-5 cursor-pointer hover:shadow-lg transition">
+            <div class="text-3xl mb-2">💼</div>
+            <div class="font-bold text-amber-900">Estado de resultados</div>
+            <div class="text-xs text-stone-500 mt-1">Costos, ingresos y utilidad</div>
+            <button class="btn btn-outline mt-3 w-full">Generar PDF</button>
+          </div>
+          <div class="card p-5 cursor-pointer hover:shadow-lg transition">
+            <div class="text-3xl mb-2">📦</div>
+            <div class="font-bold text-amber-900">Inventario valorizado</div>
+            <div class="text-xs text-stone-500 mt-1">MP y PT al costo</div>
+            <button class="btn btn-outline mt-3 w-full">Generar PDF</button>
+          </div>
+          <div class="card p-5 cursor-pointer hover:shadow-lg transition">
+            <div class="text-3xl mb-2">👥</div>
+            <div class="font-bold text-amber-900">Análisis de clientes</div>
+            <div class="text-xs text-stone-500 mt-1">Top compradores · ABC</div>
+            <button class="btn btn-outline mt-3 w-full">Generar PDF</button>
+          </div>
+          <div class="card p-5 cursor-pointer hover:shadow-lg transition">
+            <div class="text-3xl mb-2">🛵</div>
+            <div class="font-bold text-amber-900">Liquidación mensajeros</div>
+            <div class="text-xs text-stone-500 mt-1">Comisiones semanales</div>
+            <button class="btn btn-outline mt-3 w-full">Generar PDF</button>
+          </div>
+        </div>
+
+        <div class="card p-6">
+          <h3 class="font-bold text-amber-900 mb-4">📈 Resumen mensual · Septiembre 2026</h3>
+          <canvas id="chartMensual" height="80"></canvas>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script>
+  function showView(id, el) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+    if (el) el.classList.add('active');
+    const titles = {
+      dashboard: ['Dashboard General', 'Resumen operativo del día · Martes 22 de Septiembre, 2026'],
+      almacen: ['Almacén de Materias Primas', 'Control de inventario de insumos'],
+      produccion: ['Producción', 'Órdenes, recetas y consolidado'],
+      puntos: ['Puntos de Venta', 'Panadería · Kiosko Manuelita · Punto 2 · Mensajeros'],
+      clientes: ['CRM · Clientes', 'Gestión de cartera de clientes'],
+      mensajeros: ['CRM · Mensajeros', 'Equipo de delivery y comisiones'],
+      pedidos: ['Pedidos', 'Gestión de pedidos y entregas'],
+      caja: ['Caja del Día', 'Arqueo y conciliación de pagos'],
+      reportes: ['Reportes y ONAT', 'Informes fiscales y operativos']
+    };
+    document.getElementById('pageTitle').textContent = titles[id][0];
+    document.getElementById('pageSubtitle').textContent = titles[id][1];
+  }
+
+  function selectPunto(p) {
+    alert('Abriendo detalle del punto: ' + p);
+  }
+
+  // Charts
+  window.addEventListener('load', () => {
+    new Chart(document.getElementById('chartVentas'), {
+      type: 'line',
+      data: {
+        labels: ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'],
+        datasets: [
+          { label: 'Panadería', data: [15200,16800,17400,18200,19100,22400,18450], borderColor: '#b45309', backgroundColor: 'rgba(180,83,9,0.1)', tension: 0.4, fill: true },
+          { label: 'Kiosko', data: [9800,10200,11400,12100,11800,13200,12300], borderColor: '#d97706', backgroundColor: 'rgba(217,119,6,0.1)', tension: 0.4, fill: true },
+          { label: 'Pto 2', data: [7200,7800,8100,8900,9200,10400,9800], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', tension: 0.4, fill: true },
+          { label: 'Mensajeros', data: [5400,6100,6800,7200,7800,8900,8200], borderColor: '#92400e', backgroundColor: 'rgba(146,64,14,0.1)', tension: 0.4, fill: true }
+        ]
+      },
+      options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+
+    new Chart(document.getElementById('chartDistribucion'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Panadería','Kiosko Manuelita','Punto Venta 2','Mensajeros','Merma'],
+        datasets: [{ data: [45,25,18,10,2], backgroundColor: ['#b45309','#d97706','#f59e0b','#92400e','#dc2626'] }]
+      },
+      options: { plugins: { legend: { position: 'bottom' } } }
+    });
+
+    new Chart(document.getElementById('chartMensual'), {
+      type: 'bar',
+      data: {
+        labels: ['Sem 1','Sem 2','Sem 3','Sem 4'],
+        datasets: [
+          { label: 'Ingresos', data: [285000,312000,298000,340000], backgroundColor: '#b45309' },
+          { label: 'Costos', data: [180000,195000,188000,210000], backgroundColor: '#f59e0b' },
+          { label: 'Utilidad', data: [105000,117000,110000,130000], backgroundColor: '#16a34a' }
+        ]
+      },
+      options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+  });
+</script>
+
+</body>
+</html>
