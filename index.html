@@ -25,8 +25,20 @@
   .btn-primary { background: #b45309; color: white; }
   .btn-primary:hover { background: #92400e; }
   .btn-outline { border: 1px solid #d97706; color: #b45309; background: white; }
+  .btn-outline:hover { background: #fffbeb; }
+  .btn-danger { background: #dc2626; color: white; }
+  .btn-danger:hover { background: #991b1b; }
   .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
   .scroll-hide::-webkit-scrollbar { display: none; }
+  .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+  .modal.active { display: flex; align-items: center; justify-content: center; }
+  .modal-content { background: white; border-radius: 16px; padding: 24px; max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto; }
+  .form-input { width: 100%; padding: 8px 12px; border: 1px solid #d6d3d1; border-radius: 8px; font-size: 14px; }
+  .form-input:focus { outline: none; border-color: #d97706; }
+  .ingrediente-row { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .ingrediente-row input, .ingrediente-row select { padding: 6px 10px; border: 1px solid #d6d3d1; border-radius: 6px; font-size: 13px; }
+  .btn-icon { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+  .btn-icon:hover { transform: scale(1.1); }
 </style>
 </head>
 <body class="text-stone-800">
@@ -53,6 +65,9 @@
       </div>
       <div class="sidebar-item px-5 py-3 cursor-pointer flex items-center gap-3" onclick="showView('almacen', this)">
         <span>📦</span><span>Almacén</span>
+      </div>
+      <div class="sidebar-item px-5 py-3 cursor-pointer flex items-center gap-3" onclick="showView('recetas', this)">
+        <span>📖</span><span>Recetas</span>
       </div>
       <div class="sidebar-item px-5 py-3 cursor-pointer flex items-center gap-3" onclick="showView('produccion', this)">
         <span>👨‍🍳</span><span>Producción</span>
@@ -210,6 +225,62 @@
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- ============ RECETAS ============ -->
+      <section id="recetas" class="view">
+        <div class="flex gap-2 mb-6">
+          <button class="btn btn-primary" onclick="openRecetaModal()">+ Nueva receta</button>
+          <button class="btn btn-outline">Importar recetas</button>
+          <button class="btn btn-outline">Exportar recetas</button>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4 mb-6">
+          <div class="kpi-card card p-5">
+            <div class="text-xs text-stone-600">Recetas activas</div>
+            <div class="text-3xl font-bold text-amber-900 mt-1" id="totalRecetas">0</div>
+          </div>
+          <div class="kpi-card card p-5">
+            <div class="text-xs text-stone-600">Categorías</div>
+            <div class="text-3xl font-bold text-amber-900 mt-1" id="totalCategorias">0</div>
+          </div>
+          <div class="kpi-card card p-5">
+            <div class="text-xs text-stone-600">Insumos promedio</div>
+            <div class="text-3xl font-bold text-amber-900 mt-1" id="promedioInsumos">0</div>
+          </div>
+        </div>
+
+        <div class="card p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-amber-900">📖 Catálogo de recetas</h3>
+            <div class="flex gap-2">
+              <select class="text-sm border border-amber-200 rounded px-3 py-1.5">
+                <option>Todas las categorías</option>
+                <option>Panes</option>
+                <option>Pizzas</option>
+                <option>Galletas</option>
+                <option>Otros</option>
+              </select>
+              <input type="text" placeholder="Buscar receta..." class="text-sm border border-amber-200 rounded px-3 py-1.5 w-48">
+            </div>
+          </div>
+          <table id="tablaRecetas">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th>Unidades por masa</th>
+                <th>Insumos</th>
+                <th>Costo estimado</th>
+                <th>Última modificación</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="recetasBody">
+              <!-- Se llena dinámicamente -->
+            </tbody>
+          </table>
         </div>
       </section>
 
@@ -521,7 +592,165 @@
   </main>
 </div>
 
+<!-- MODAL RECETA -->
+<div id="modalReceta" class="modal">
+  <div class="modal-content">
+    <div class="flex justify-between items-center mb-6">
+      <h2 id="modalTitle" class="text-xl font-bold text-amber-900">Nueva Receta</h2>
+      <button onclick="closeRecetaModal()" class="text-stone-400 hover:text-stone-600 text-2xl">×</button>
+    </div>
+
+    <form id="formReceta" onsubmit="guardarReceta(event)">
+      <input type="hidden" id="recetaId">
+      
+      <div class="mb-4">
+        <label class="block text-sm font-semibold text-stone-700 mb-2">Nombre del producto *</label>
+        <input type="text" id="nombreProducto" class="form-input" required placeholder="Ej: Pan Suave caña 130g">
+      </div>
+
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="block text-sm font-semibold text-stone-700 mb-2">Categoría *</label>
+          <select id="categoria" class="form-input" required>
+            <option value="">Seleccionar...</option>
+            <option value="Panes">Panes</option>
+            <option value="Pizzas">Pizzas</option>
+            <option value="Galletas">Galletas</option>
+            <option value="Dulces">Dulces</option>
+            <option value="Salados">Salados</option>
+            <option value="Otros">Otros</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-stone-700 mb-2">Unidades por masa *</label>
+          <input type="number" id="unidadesPorMasa" class="form-input" required min="1" step="1" placeholder="Ej: 12">
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-sm font-semibold text-stone-700 mb-2">Precio de venta (CUP)</label>
+        <input type="number" id="precioVenta" class="form-input" min="0" step="0.01" placeholder="Ej: 85.00">
+      </div>
+
+      <div class="mb-6">
+        <div class="flex justify-between items-center mb-3">
+          <label class="block text-sm font-semibold text-stone-700">Ingredientes *</label>
+          <button type="button" onclick="agregarIngrediente()" class="btn btn-outline text-xs">+ Agregar ingrediente</button>
+        </div>
+        <div id="ingredientesContainer" class="space-y-2">
+          <!-- Ingredientes dinámicos -->
+        </div>
+      </div>
+
+      <div class="flex gap-2 justify-end">
+        <button type="button" onclick="closeRecetaModal()" class="btn btn-outline">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar receta</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
+  // Datos de insumos disponibles
+  const insumosDisponibles = [
+    { codigo: '001', nombre: 'Harina de trigo', um: 'Kg', precio: 85 },
+    { codigo: '002', nombre: 'Levadura', um: 'Kg', precio: 220 },
+    { codigo: '003', nombre: 'Núcleo', um: 'Kg', precio: 180 },
+    { codigo: '004', nombre: 'Sal', um: 'Kg', precio: 25 },
+    { codigo: '005', nombre: 'Aceite', um: 'Kg', precio: 140 },
+    { codigo: '006', nombre: 'Azúcar', um: 'Kg', precio: 65 },
+    { codigo: '007', nombre: 'Manteca', um: 'Kg', precio: 160 }
+  ];
+
+  // Recetas por defecto basadas en el Excel
+  const recetasDefault = [
+    {
+      id: 1,
+      nombre: 'Pan Suave caña 130g',
+      categoria: 'Panes',
+      unidadesPorMasa: 12,
+      precioVenta: 85,
+      ingredientes: [
+        { insumo: '001', cantidad: 15 },
+        { insumo: '002', cantidad: 0.2 },
+        { insumo: '003', cantidad: 0.145 },
+        { insumo: '004', cantidad: 0.32 },
+        { insumo: '005', cantidad: 0.3 },
+        { insumo: '006', cantidad: 0.406 },
+        { insumo: '007', cantidad: 0.406 }
+      ],
+      fechaModificacion: '2026-09-22'
+    },
+    {
+      id: 2,
+      nombre: 'Pan Suave bola 40g',
+      categoria: 'Panes',
+      unidadesPorMasa: 20,
+      precioVenta: 45,
+      ingredientes: [
+        { insumo: '001', cantidad: 15 },
+        { insumo: '002', cantidad: 0.2 },
+        { insumo: '003', cantidad: 0.145 },
+        { insumo: '004', cantidad: 0.32 },
+        { insumo: '005', cantidad: 0.3 },
+        { insumo: '006', cantidad: 0.406 },
+        { insumo: '007', cantidad: 0.406 }
+      ],
+      fechaModificacion: '2026-09-22'
+    },
+    {
+      id: 3,
+      nombre: 'Pan de molde 450g',
+      categoria: 'Panes',
+      unidadesPorMasa: 10,
+      precioVenta: 180,
+      ingredientes: [
+        { insumo: '001', cantidad: 15 },
+        { insumo: '002', cantidad: 0.2 },
+        { insumo: '003', cantidad: 0.145 },
+        { insumo: '004', cantidad: 0.32 },
+        { insumo: '005', cantidad: 0.3 },
+        { insumo: '006', cantidad: 0.6 },
+        { insumo: '007', cantidad: 0.5 }
+      ],
+      fechaModificacion: '2026-09-22'
+    },
+    {
+      id: 4,
+      nombre: 'Masa de pizza 90g',
+      categoria: 'Pizzas',
+      unidadesPorMasa: 12,
+      precioVenta: 95,
+      ingredientes: [
+        { insumo: '001', cantidad: 15 },
+        { insumo: '002', cantidad: 0.2 },
+        { insumo: '003', cantidad: 0.145 },
+        { insumo: '004', cantidad: 0.4 },
+        { insumo: '005', cantidad: 0.5 }
+      ],
+      fechaModificacion: '2026-09-22'
+    },
+    {
+      id: 5,
+      nombre: 'Galletones paquete',
+      categoria: 'Galletas',
+      unidadesPorMasa: 10,
+      precioVenta: 120,
+      ingredientes: [
+        { insumo: '001', cantidad: 15 },
+        { insumo: '002', cantidad: 0.15 },
+        { insumo: '003', cantidad: 0.1 },
+        { insumo: '004', cantidad: 0.2 },
+        { insumo: '006', cantidad: 0.8 },
+        { insumo: '007', cantidad: 0.6 }
+      ],
+      fechaModificacion: '2026-09-22'
+    }
+  ];
+
+  // Cargar recetas desde localStorage o usar default
+  let recetas = JSON.parse(localStorage.getItem('recetas')) || recetasDefault;
+
   function showView(id, el) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(id).classList.add('active');
@@ -530,6 +759,7 @@
     const titles = {
       dashboard: ['Dashboard General', 'Resumen operativo del día · Martes 22 de Septiembre, 2026'],
       almacen: ['Almacén de Materias Primas', 'Control de inventario de insumos'],
+      recetas: ['Recetas', 'Gestión de recetas y formulaciones'],
       produccion: ['Producción', 'Órdenes, recetas y consolidado'],
       puntos: ['Puntos de Venta', 'Panadería · Kiosko Manuelita · Punto 2 · Mensajeros'],
       clientes: ['CRM · Clientes', 'Gestión de cartera de clientes'],
@@ -540,14 +770,175 @@
     };
     document.getElementById('pageTitle').textContent = titles[id][0];
     document.getElementById('pageSubtitle').textContent = titles[id][1];
+    
+    if (id === 'recetas') renderRecetas();
   }
 
   function selectPunto(p) {
     alert('Abriendo detalle del punto: ' + p);
   }
 
+  // RECETAS
+  function renderRecetas() {
+    const tbody = document.getElementById('recetasBody');
+    tbody.innerHTML = '';
+    
+    recetas.forEach(receta => {
+      const costoEstimado = calcularCosto(receta.ingredientes);
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="font-semibold">${receta.nombre}</td>
+        <td><span class="badge bg-amber-100 text-amber-700">${receta.categoria}</span></td>
+        <td>${receta.unidadesPorMasa}</td>
+        <td>${receta.ingredientes.length} insumos</td>
+        <td class="font-bold">$${costoEstimado.toFixed(2)}</td>
+        <td class="text-xs text-stone-500">${receta.fechaModificacion}</td>
+        <td>
+          <div class="flex gap-1">
+            <button onclick="editarReceta(${receta.id})" class="btn-icon bg-amber-100 text-amber-700" title="Editar">✏️</button>
+            <button onclick="duplicarReceta(${receta.id})" class="btn-icon bg-blue-100 text-blue-700" title="Duplicar">📋</button>
+            <button onclick="eliminarReceta(${receta.id})" class="btn-icon bg-red-100 text-red-700" title="Eliminar">🗑️</button>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    // Actualizar KPIs
+    document.getElementById('totalRecetas').textContent = recetas.length;
+    const categorias = [...new Set(recetas.map(r => r.categoria))];
+    document.getElementById('totalCategorias').textContent = categorias.length;
+    const promedio = recetas.length > 0 ? (recetas.reduce((sum, r) => sum + r.ingredientes.length, 0) / recetas.length).toFixed(1) : 0;
+    document.getElementById('promedioInsumos').textContent = promedio;
+  }
+
+  function calcularCosto(ingredientes) {
+    return ingredientes.reduce((total, ing) => {
+      const insumo = insumosDisponibles.find(i => i.codigo === ing.insumo);
+      return total + (insumo ? insumo.precio * ing.cantidad : 0);
+    }, 0);
+  }
+
+  function openRecetaModal(receta = null) {
+    document.getElementById('modalReceta').classList.add('active');
+    document.getElementById('formReceta').reset();
+    document.getElementById('ingredientesContainer').innerHTML = '';
+    
+    if (receta) {
+      document.getElementById('modalTitle').textContent = 'Editar Receta';
+      document.getElementById('recetaId').value = receta.id;
+      document.getElementById('nombreProducto').value = receta.nombre;
+      document.getElementById('categoria').value = receta.categoria;
+      document.getElementById('unidadesPorMasa').value = receta.unidadesPorMasa;
+      document.getElementById('precioVenta').value = receta.precioVenta || '';
+      
+      receta.ingredientes.forEach(ing => agregarIngrediente(ing));
+    } else {
+      document.getElementById('modalTitle').textContent = 'Nueva Receta';
+      document.getElementById('recetaId').value = '';
+      agregarIngrediente();
+    }
+  }
+
+  function closeRecetaModal() {
+    document.getElementById('modalReceta').classList.remove('active');
+  }
+
+  function agregarIngrediente(ingrediente = null) {
+    const container = document.getElementById('ingredientesContainer');
+    const row = document.createElement('div');
+    row.className = 'ingrediente-row';
+    
+    const insumoValue = ingrediente ? ingrediente.insumo : '';
+    const cantidadValue = ingrediente ? ingrediente.cantidad : '';
+    
+    row.innerHTML = `
+      <select class="ingrediente-insumo" required>
+        <option value="">Seleccionar insumo...</option>
+        ${insumosDisponibles.map(i => `<option value="${i.codigo}" ${i.codigo === insumoValue ? 'selected' : ''}>${i.nombre} (${i.um})</option>`).join('')}
+      </select>
+      <input type="number" class="ingrediente-cantidad" step="0.001" min="0" placeholder="Cantidad" value="${cantidadValue}" required>
+      <div class="text-xs text-stone-500">Kg</div>
+      <button type="button" onclick="this.parentElement.remove()" class="btn-icon bg-red-100 text-red-700">🗑️</button>
+    `;
+    
+    container.appendChild(row);
+  }
+
+  function guardarReceta(event) {
+    event.preventDefault();
+    
+    const id = document.getElementById('recetaId').value;
+    const nombre = document.getElementById('nombreProducto').value;
+    const categoria = document.getElementById('categoria').value;
+    const unidadesPorMasa = parseInt(document.getElementById('unidadesPorMasa').value);
+    const precioVenta = parseFloat(document.getElementById('precioVenta').value) || 0;
+    
+    const ingredientes = [];
+    document.querySelectorAll('.ingrediente-row').forEach(row => {
+      const insumo = row.querySelector('.ingrediente-insumo').value;
+      const cantidad = parseFloat(row.querySelector('.ingrediente-cantidad').value);
+      if (insumo && cantidad) {
+        ingredientes.push({ insumo, cantidad });
+      }
+    });
+    
+    if (ingredientes.length === 0) {
+      alert('Debe agregar al menos un ingrediente');
+      return;
+    }
+    
+    const receta = {
+      id: id ? parseInt(id) : Date.now(),
+      nombre,
+      categoria,
+      unidadesPorMasa,
+      precioVenta,
+      ingredientes,
+      fechaModificacion: new Date().toISOString().split('T')[0]
+    };
+    
+    if (id) {
+      const index = recetas.findIndex(r => r.id === parseInt(id));
+      recetas[index] = receta;
+    } else {
+      recetas.push(receta);
+    }
+    
+    localStorage.setItem('recetas', JSON.stringify(recetas));
+    closeRecetaModal();
+    renderRecetas();
+    
+    alert('Receta guardada exitosamente');
+  }
+
+  function editarReceta(id) {
+    const receta = recetas.find(r => r.id === id);
+    if (receta) openRecetaModal(receta);
+  }
+
+  function duplicarReceta(id) {
+    const receta = recetas.find(r => r.id === id);
+    if (receta) {
+      const nueva = { ...receta, id: Date.now(), nombre: receta.nombre + ' (copia)', fechaModificacion: new Date().toISOString().split('T')[0] };
+      recetas.push(nueva);
+      localStorage.setItem('recetas', JSON.stringify(recetas));
+      renderRecetas();
+    }
+  }
+
+  function eliminarReceta(id) {
+    if (confirm('¿Está seguro de eliminar esta receta?')) {
+      recetas = recetas.filter(r => r.id !== id);
+      localStorage.setItem('recetas', JSON.stringify(recetas));
+      renderRecetas();
+    }
+  }
+
   // Charts
   window.addEventListener('load', () => {
+    renderRecetas();
+    
     new Chart(document.getElementById('chartVentas'), {
       type: 'line',
       data: {
