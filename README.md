@@ -94,7 +94,7 @@ Antes de usar el sistema, entiende cómo fluye el trabajo en la panadería:
 ### Desde computadora
 
 1. Abre tu navegador (Chrome, Firefox, Edge)
-2. Ve a la dirección que te dio MoviSoft (ej: `https://demo.movisoft.cu`)
+2. Ve a la dirección que te dio MoviSoft (ej: `[https://demo.movisoft.cu](https://clgil.github.io/panaderia/)`)
 3. Si tiene contraseña, ingrésala
 4. Verás el **Dashboard** con el resumen del día
 
