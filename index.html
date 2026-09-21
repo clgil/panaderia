@@ -13,6 +13,9 @@
   .sidebar-item.active { background: linear-gradient(90deg, #b45309, #d97706); color: white; }
   .card { background: white; border-radius: 16px; box-shadow: 0 2px 8px rgba(120,53,15,0.06); }
   .kpi-card { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 4px solid #d97706; }
+  .kpi-card.green { border-left-color: #16a34a; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); }
+  .kpi-card.red { border-left-color: #dc2626; background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); }
+  .kpi-card.blue { border-left-color: #2563eb; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); }
   .badge { padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
   .view { display: none; }
   .view.active { display: block; animation: fadeIn 0.3s; }
@@ -28,17 +31,26 @@
   .btn-outline:hover { background: #fffbeb; }
   .btn-danger { background: #dc2626; color: white; }
   .btn-danger:hover { background: #991b1b; }
-  .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
   .scroll-hide::-webkit-scrollbar { display: none; }
   .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
   .modal.active { display: flex; align-items: center; justify-content: center; }
   .modal-content { background: white; border-radius: 16px; padding: 24px; max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto; }
   .form-input { width: 100%; padding: 8px 12px; border: 1px solid #d6d3d1; border-radius: 8px; font-size: 14px; }
   .form-input:focus { outline: none; border-color: #d97706; }
+  .form-label { display: block; text-sm; font-semibold; color: #44403c; margin-bottom: 6px; }
   .ingrediente-row { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; }
   .ingrediente-row input, .ingrediente-row select { padding: 6px 10px; border: 1px solid #d6d3d1; border-radius: 6px; font-size: 13px; }
   .btn-icon { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
   .btn-icon:hover { transform: scale(1.1); }
+  .desviacion-positive { color: #2563eb; font-weight: 700; }
+  .desviacion-negative { color: #dc2626; font-weight: 700; }
+  .desviacion-ok { color: #16a34a; font-weight: 700; }
+  .alert-banner { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
+  .alert-warning { background: #fef3c7; border-left: 4px solid #f59e0b; color: #78350f; }
+  .alert-danger { background: #fee2e2; border-left: 4px solid #dc2626; color: #7f1d1d; }
+  .alert-info { background: #dbeafe; border-left: 4px solid #2563eb; color: #1e3a8a; }
+  .progress-bar { height: 8px; background: #f5e9d3; border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; transition: width 0.3s; }
 </style>
 </head>
 <body class="text-stone-800">
@@ -52,7 +64,7 @@
         <div class="text-3xl">🍞</div>
         <div>
           <div class="font-bold text-lg leading-tight">Pan de Dios</div>
-          <div class="text-xs text-amber-200">Sistema de Gestión v1.0</div>
+          <div class="text-xs text-amber-200">Sistema de Gestión v1.2</div>
         </div>
       </div>
       <div class="mt-3 text-[10px] text-amber-300 uppercase tracking-wider">MoviSoft SURL · Mypyme</div>
@@ -71,6 +83,9 @@
       </div>
       <div class="sidebar-item px-5 py-3 cursor-pointer flex items-center gap-3" onclick="showView('produccion', this)">
         <span>👨‍🍳</span><span>Producción</span>
+      </div>
+      <div class="sidebar-item px-5 py-3 cursor-pointer flex items-center gap-3" onclick="showView('rendimiento', this)">
+        <span>📈</span><span>Control Rendimiento</span>
       </div>
       <div class="sidebar-item px-5 py-3 cursor-pointer flex items-center gap-3" onclick="showView('puntos', this)">
         <span>🏪</span><span>Puntos de Venta</span>
@@ -178,14 +193,6 @@
                 <div class="flex justify-between text-sm mb-1"><span>🍕 Masa pizza 90g</span><span class="font-bold">156 uds</span></div>
                 <div class="h-2 bg-amber-100 rounded-full overflow-hidden"><div class="h-full bg-amber-600" style="width:55%"></div></div>
               </div>
-              <div>
-                <div class="flex justify-between text-sm mb-1"><span>🥪 Pan de molde 450g</span><span class="font-bold">98 uds</span></div>
-                <div class="h-2 bg-amber-100 rounded-full overflow-hidden"><div class="h-full bg-amber-600" style="width:38%"></div></div>
-              </div>
-              <div>
-                <div class="flex justify-between text-sm mb-1"><span>🍪 Galletones paquete</span><span class="font-bold">74 uds</span></div>
-                <div class="h-2 bg-amber-100 rounded-full overflow-hidden"><div class="h-full bg-amber-600" style="width:26%"></div></div>
-              </div>
             </div>
           </div>
         </div>
@@ -202,28 +209,119 @@
                 <div><div class="font-semibold text-sm">Núcleo</div><div class="text-xs text-stone-500">Código 003 · Kg</div></div>
                 <div class="text-right"><div class="font-bold text-yellow-700">8.5 Kg</div><div class="text-xs text-stone-500">Mínimo: 15 Kg</div></div>
               </div>
-              <div class="flex justify-between items-center p-3 bg-green-50 rounded-lg border-l-4 border-green-500">
-                <div><div class="font-semibold text-sm">Harina de trigo</div><div class="text-xs text-stone-500">Código 001 · Kg</div></div>
-                <div class="text-right"><div class="font-bold text-green-700">320 Kg</div><div class="text-xs text-stone-500">OK</div></div>
-              </div>
             </div>
           </div>
           <div class="card p-5">
-            <h3 class="font-bold text-amber-900 mb-4">🛵 Mensajeros activos</h3>
-            <div class="space-y-2">
-              <div class="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
-                <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold">RL</div><div><div class="font-semibold text-sm">Roberto López</div><div class="text-xs text-stone-500">Zona Vedado · 14 pedidos</div></div></div>
-                <span class="badge bg-green-100 text-green-700">En ruta</span>
+            <h3 class="font-bold text-amber-900 mb-4">📈 Rendimiento hoy</h3>
+            <div class="space-y-3">
+              <div>
+                <div class="flex justify-between text-sm mb-1"><span>Eficiencia global</span><span class="font-bold text-green-700">96.8%</span></div>
+                <div class="progress-bar"><div class="progress-fill bg-green-500" style="width:96.8%"></div></div>
               </div>
-              <div class="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
-                <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold">MP</div><div><div class="font-semibold text-sm">María Pérez</div><div class="text-xs text-stone-500">Zona Centro · 9 pedidos</div></div></div>
-                <span class="badge bg-green-100 text-green-700">En ruta</span>
+              <div>
+                <div class="flex justify-between text-sm mb-1"><span>Sobrecumplimiento</span><span class="font-bold text-blue-700">+42 uds</span></div>
+                <div class="progress-bar"><div class="progress-fill bg-blue-500" style="width:65%"></div></div>
               </div>
-              <div class="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
-                <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-stone-400 text-white flex items-center justify-center font-bold">JS</div><div><div class="font-semibold text-sm">Jorge Sánchez</div><div class="text-xs text-stone-500">Zona Plaza · 0 pedidos</div></div></div>
-                <span class="badge bg-stone-200 text-stone-600">Disponible</span>
+              <div>
+                <div class="flex justify-between text-sm mb-1"><span>Merma</span><span class="font-bold text-red-700">-18 uds</span></div>
+                <div class="progress-bar"><div class="progress-fill bg-red-500" style="width:25%"></div></div>
+              </div>
+              <div class="text-xs text-stone-500 mt-2">
+                <a href="#" onclick="showView('rendimiento', document.querySelector('[onclick*=rendimiento]'))" class="text-amber-700 hover:underline">Ver detalle →</a>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CONTROL DE RENDIMIENTO ============ -->
+      <section id="rendimiento" class="view">
+        <div class="flex gap-2 mb-6">
+          <button class="btn btn-primary" onclick="openRendimientoModal()">+ Registrar producción real</button>
+          <button class="btn btn-outline" onclick="exportRendimiento()">📥 Exportar CSV</button>
+          <button class="btn btn-outline">📊 Análisis por panadero</button>
+        </div>
+
+        <!-- KPIs de rendimiento -->
+        <div class="grid grid-cols-4 gap-4 mb-6">
+          <div class="kpi-card green card p-5">
+            <div class="text-xs text-stone-600 uppercase tracking-wider">Eficiencia global</div>
+            <div class="text-3xl font-bold text-green-700 mt-1" id="kpiEficiencia">96.8%</div>
+            <div class="text-xs text-stone-500 mt-1">Meta: 95%+</div>
+          </div>
+          <div class="kpi-card blue card p-5">
+            <div class="text-xs text-stone-600 uppercase tracking-wider">Sobrecumplimiento</div>
+            <div class="text-3xl font-bold text-blue-700 mt-1" id="kpiSobre">+42 uds</div>
+            <div class="text-xs text-stone-500 mt-1">Valor: $3,570 CUP</div>
+          </div>
+          <div class="kpi-card red card p-5">
+            <div class="text-xs text-stone-600 uppercase tracking-wider">Merma total</div>
+            <div class="text-3xl font-bold text-red-700 mt-1" id="kpiMerma">-18 uds</div>
+            <div class="text-xs text-stone-500 mt-1">Pérdida: $1,560 CUP</div>
+          </div>
+          <div class="kpi-card card p-5">
+            <div class="text-xs text-stone-600 uppercase tracking-wider">Registros hoy</div>
+            <div class="text-3xl font-bold text-amber-900 mt-1" id="kpiRegistros">0</div>
+            <div class="text-xs text-stone-500 mt-1">Producciones cerradas</div>
+          </div>
+        </div>
+
+        <!-- Alertas -->
+        <div id="alertasRendimiento"></div>
+
+        <!-- Tabla de registros -->
+        <div class="card p-6 mb-6">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-amber-900">📋 Registros de producción del día</h3>
+            <div class="flex gap-2">
+              <select id="filtroPanadero" onchange="renderRendimiento()" class="text-sm border border-amber-200 rounded px-3 py-1.5">
+                <option value="">Todos los panaderos</option>
+              </select>
+              <select id="filtroProducto" onchange="renderRendimiento()" class="text-sm border border-amber-200 rounded px-3 py-1.5">
+                <option value="">Todos los productos</option>
+              </select>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Hora</th>
+                <th>Producto</th>
+                <th>Panadero</th>
+                <th>Masas</th>
+                <th>Esperado</th>
+                <th>Real</th>
+                <th>Desviación</th>
+                <th>Causa</th>
+                <th>Acción</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="rendimientoBody"></tbody>
+            <tfoot id="rendimientoFoot"></tfoot>
+          </table>
+        </div>
+
+        <!-- Análisis -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="card p-5">
+            <h3 class="font-bold text-amber-900 mb-4">📊 Desviaciones por producto</h3>
+            <canvas id="chartDesviaciones" height="200"></canvas>
+          </div>
+          <div class="card p-5">
+            <h3 class="font-bold text-amber-900 mb-4">🔍 Top causas de desviación</h3>
+            <div id="topCausas" class="space-y-3"></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mt-4">
+          <div class="card p-5">
+            <h3 class="font-bold text-amber-900 mb-4">👨‍🍳 Ranking de panaderos</h3>
+            <div id="rankingPanaderos" class="space-y-3"></div>
+          </div>
+          <div class="card p-5">
+            <h3 class="font-bold text-amber-900 mb-4">📈 Tendencia de eficiencia (7 días)</h3>
+            <canvas id="chartTendencia" height="200"></canvas>
           </div>
         </div>
       </section>
@@ -237,49 +335,21 @@
         </div>
 
         <div class="grid grid-cols-3 gap-4 mb-6">
-          <div class="kpi-card card p-5">
-            <div class="text-xs text-stone-600">Recetas activas</div>
-            <div class="text-3xl font-bold text-amber-900 mt-1" id="totalRecetas">0</div>
-          </div>
-          <div class="kpi-card card p-5">
-            <div class="text-xs text-stone-600">Categorías</div>
-            <div class="text-3xl font-bold text-amber-900 mt-1" id="totalCategorias">0</div>
-          </div>
-          <div class="kpi-card card p-5">
-            <div class="text-xs text-stone-600">Insumos promedio</div>
-            <div class="text-3xl font-bold text-amber-900 mt-1" id="promedioInsumos">0</div>
-          </div>
+          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Recetas activas</div><div class="text-3xl font-bold text-amber-900 mt-1" id="totalRecetas">0</div></div>
+          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Categorías</div><div class="text-3xl font-bold text-amber-900 mt-1" id="totalCategorias">0</div></div>
+          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Insumos promedio</div><div class="text-3xl font-bold text-amber-900 mt-1" id="promedioInsumos">0</div></div>
         </div>
 
         <div class="card p-6">
           <div class="flex justify-between items-center mb-4">
             <h3 class="font-bold text-amber-900">📖 Catálogo de recetas</h3>
-            <div class="flex gap-2">
-              <select class="text-sm border border-amber-200 rounded px-3 py-1.5">
-                <option>Todas las categorías</option>
-                <option>Panes</option>
-                <option>Pizzas</option>
-                <option>Galletas</option>
-                <option>Otros</option>
-              </select>
-              <input type="text" placeholder="Buscar receta..." class="text-sm border border-amber-200 rounded px-3 py-1.5 w-48">
-            </div>
+            <input type="text" placeholder="Buscar receta..." class="text-sm border border-amber-200 rounded px-3 py-1.5 w-48">
           </div>
-          <table id="tablaRecetas">
+          <table>
             <thead>
-              <tr>
-                <th>Producto</th>
-                <th>Categoría</th>
-                <th>Unidades por masa</th>
-                <th>Insumos</th>
-                <th>Costo estimado</th>
-                <th>Última modificación</th>
-                <th>Acciones</th>
-              </tr>
+              <tr><th>Producto</th><th>Categoría</th><th>Unidades/masa</th><th>Insumos</th><th>Costo</th><th>Modificación</th><th>Acciones</th></tr>
             </thead>
-            <tbody id="recetasBody">
-              <!-- Se llena dinámicamente -->
-            </tbody>
+            <tbody id="recetasBody"></tbody>
           </table>
         </div>
       </section>
@@ -289,49 +359,21 @@
         <div class="flex gap-2 mb-6">
           <button class="btn btn-primary">+ Entrada al almacén</button>
           <button class="btn btn-outline">Enviar a producción</button>
-          <button class="btn btn-outline">Inventario físico</button>
         </div>
-
-        <div class="card p-6 mb-6">
-          <h3 class="font-bold text-amber-900 mb-4">📦 Materias primas en almacén</h3>
+        <div class="card p-6">
+          <h3 class="font-bold text-amber-900 mb-4">📦 Materias primas</h3>
           <table>
-            <thead>
-              <tr><th>Código</th><th>Producto</th><th>UM</th><th>Stock actual</th><th>Stock mínimo</th><th>Precio compra</th><th>Valor total</th><th>Estado</th></tr>
-            </thead>
+            <thead><tr><th>Código</th><th>Producto</th><th>UM</th><th>Stock</th><th>Mínimo</th><th>Precio</th><th>Valor</th><th>Estado</th></tr></thead>
             <tbody>
-              <tr><td>001</td><td>Harina de trigo</td><td>Kg</td><td class="font-bold">320.0</td><td>100</td><td>$85.00</td><td>$27,200</td><td><span class="badge bg-green-100 text-green-700">OK</span></td></tr>
-              <tr><td>002</td><td>Levadura</td><td>Kg</td><td class="font-bold text-red-600">4.2</td><td>10</td><td>$220.00</td><td>$924</td><td><span class="badge bg-red-100 text-red-700">Crítico</span></td></tr>
-              <tr><td>003</td><td>Núcleo</td><td>Kg</td><td class="font-bold text-yellow-600">8.5</td><td>15</td><td>$180.00</td><td>$1,530</td><td><span class="badge bg-yellow-100 text-yellow-700">Bajo</span></td></tr>
-              <tr><td>004</td><td>Sal</td><td>Kg</td><td class="font-bold">45.0</td><td>20</td><td>$25.00</td><td>$1,125</td><td><span class="badge bg-green-100 text-green-700">OK</span></td></tr>
-              <tr><td>005</td><td>Aceite</td><td>Kg</td><td class="font-bold">38.0</td><td>15</td><td>$140.00</td><td>$5,320</td><td><span class="badge bg-green-100 text-green-700">OK</span></td></tr>
-              <tr><td>006</td><td>Azúcar</td><td>Kg</td><td class="font-bold">52.0</td><td>20</td><td>$65.00</td><td>$3,380</td><td><span class="badge bg-green-100 text-green-700">OK</span></td></tr>
-              <tr><td>007</td><td>Manteca</td><td>Kg</td><td class="font-bold">28.0</td><td>15</td><td>$160.00</td><td>$4,480</td><td><span class="badge bg-green-100 text-green-700">OK</span></td></tr>
+              <tr><td>001</td><td>Harina de trigo</td><td>Kg</td><td class="font-bold">320.0</td><td>100</td><td>$85</td><td>$27,200</td><td><span class="badge bg-green-100 text-green-700">OK</span></td></tr>
+              <tr><td>002</td><td>Levadura</td><td>Kg</td><td class="font-bold text-red-600">4.2</td><td>10</td><td>$220</td><td>$924</td><td><span class="badge bg-red-100 text-red-700">Crítico</span></td></tr>
+              <tr><td>003</td><td>Núcleo</td><td>Kg</td><td class="font-bold text-yellow-600">8.5</td><td>15</td><td>$180</td><td>$1,530</td><td><span class="badge bg-yellow-100 text-yellow-700">Bajo</span></td></tr>
+              <tr><td>004</td><td>Sal</td><td>Kg</td><td class="font-bold">45.0</td><td>20</td><td>$25</td><td>$1,125</td><td><span class="badge bg-green-100 text-green-700">OK</span></td></tr>
+              <tr><td>005</td><td>Aceite</td><td>Kg</td><td class="font-bold">38.0</td><td>15</td><td>$140</td><td>$5,320</td><td><span class="badge bg-green-100 text-green-700">OK</span></td></tr>
+              <tr><td>006</td><td>Azúcar</td><td>Kg</td><td class="font-bold">52.0</td><td>20</td><td>$65</td><td>$3,380</td><td><span class="badge bg-green-100 text-green-700">OK</span></td></tr>
+              <tr><td>007</td><td>Manteca</td><td>Kg</td><td class="font-bold">28.0</td><td>15</td><td>$160</td><td>$4,480</td><td><span class="badge bg-green-100 text-green-700">OK</span></td></tr>
             </tbody>
           </table>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <div class="card p-5">
-            <h3 class="font-bold text-amber-900 mb-3">📥 Últimas entradas</h3>
-            <div class="space-y-2 text-sm">
-              <div class="flex justify-between p-2 bg-stone-50 rounded"><span>22/09 · Harina 500 Kg</span><span class="font-bold">$42,500</span></div>
-              <div class="flex justify-between p-2 bg-stone-50 rounded"><span>20/09 · Levadura 25 Kg</span><span class="font-bold">$5,500</span></div>
-              <div class="flex justify-between p-2 bg-stone-50 rounded"><span>18/09 · Azúcar 100 Kg</span><span class="font-bold">$6,500</span></div>
-              <div class="flex justify-between p-2 bg-stone-50 rounded"><span>15/09 · Aceite 50 Kg</span><span class="font-bold">$7,000</span></div>
-            </div>
-          </div>
-          <div class="card p-5">
-            <h3 class="font-bold text-amber-900 mb-3">📤 Consumo producción hoy</h3>
-            <div class="space-y-2 text-sm">
-              <div class="flex justify-between p-2 bg-stone-50 rounded"><span>Harina</span><span class="font-bold">1,905 Kg</span></div>
-              <div class="flex justify-between p-2 bg-stone-50 rounded"><span>Levadura</span><span class="font-bold">25.4 Kg</span></div>
-              <div class="flex justify-between p-2 bg-stone-50 rounded"><span>Núcleo</span><span class="font-bold">18.4 Kg</span></div>
-              <div class="flex justify-between p-2 bg-stone-50 rounded"><span>Sal</span><span class="font-bold">40.6 Kg</span></div>
-              <div class="flex justify-between p-2 bg-stone-50 rounded"><span>Aceite</span><span class="font-bold">38.1 Kg</span></div>
-              <div class="flex justify-between p-2 bg-stone-50 rounded"><span>Azúcar</span><span class="font-bold">51.7 Kg</span></div>
-              <div class="flex justify-between p-2 bg-stone-50 rounded"><span>Manteca</span><span class="font-bold">51.7 Kg</span></div>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -341,129 +383,40 @@
           <button class="btn btn-primary">+ Nueva orden de producción</button>
           <button class="btn btn-outline">Gestionar recetas</button>
         </div>
-
-        <div class="card p-6 mb-6">
+        <div class="card p-6">
           <h3 class="font-bold text-amber-900 mb-4">👨‍🍳 Órdenes de producción del día</h3>
           <table>
-            <thead>
-              <tr><th>Orden</th><th>Hora</th><th>Producto</th><th>Masas</th><th>Unidades</th><th>Estado</th><th>Responsable</th><th></th></tr>
-            </thead>
+            <thead><tr><th>Orden</th><th>Hora</th><th>Producto</th><th>Masas</th><th>Unidades</th><th>Estado</th><th>Responsable</th></tr></thead>
             <tbody>
-              <tr><td>OP-2026-0847</td><td>05:30</td><td>Pan Suave caña 130g</td><td>15</td><td>180</td><td><span class="badge bg-green-100 text-green-700">Terminada</span></td><td>Carlos M.</td><td><button class="text-amber-700 text-xs">Ver</button></td></tr>
-              <tr><td>OP-2026-0848</td><td>06:15</td><td>Pan Suave bola 40g</td><td>20</td><td>240</td><td><span class="badge bg-green-100 text-green-700">Terminada</span></td><td>Carlos M.</td><td><button class="text-amber-700 text-xs">Ver</button></td></tr>
-              <tr><td>OP-2026-0849</td><td>07:00</td><td>Pan de molde 450g</td><td>10</td><td>100</td><td><span class="badge bg-blue-100 text-blue-700">En proceso</span></td><td>Luis R.</td><td><button class="text-amber-700 text-xs">Ver</button></td></tr>
-              <tr><td>OP-2026-0850</td><td>08:30</td><td>Masa pizza 90g</td><td>12</td><td>144</td><td><span class="badge bg-yellow-100 text-yellow-700">Programada</span></td><td>Pendiente</td><td><button class="text-amber-700 text-xs">Ver</button></td></tr>
-              <tr><td>OP-2026-0851</td><td>10:00</td><td>Galletones paquete</td><td>8</td><td>80</td><td><span class="badge bg-yellow-100 text-yellow-700">Programada</span></td><td>Pendiente</td><td><button class="text-amber-700 text-xs">Ver</button></td></tr>
+              <tr><td>OP-2026-0847</td><td>05:30</td><td>Pan Suave caña 130g</td><td>15</td><td>180</td><td><span class="badge bg-green-100 text-green-700">Terminada</span></td><td>Carlos M.</td></tr>
+              <tr><td>OP-2026-0848</td><td>06:15</td><td>Pan Suave bola 40g</td><td>20</td><td>240</td><td><span class="badge bg-green-100 text-green-700">Terminada</span></td><td>Carlos M.</td></tr>
+              <tr><td>OP-2026-0849</td><td>07:00</td><td>Pan de molde 450g</td><td>10</td><td>100</td><td><span class="badge bg-blue-100 text-blue-700">En proceso</span></td><td>Luis R.</td></tr>
+              <tr><td>OP-2026-0850</td><td>08:30</td><td>Masa pizza 90g</td><td>12</td><td>144</td><td><span class="badge bg-yellow-100 text-yellow-700">Programada</span></td><td>Pendiente</td></tr>
             </tbody>
           </table>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <div class="card p-5">
-            <h3 class="font-bold text-amber-900 mb-3">📋 Receta: Pan Suave caña 130g</h3>
-            <div class="text-xs text-stone-500 mb-3">Por cada masa (12 unidades)</div>
-            <table class="text-sm">
-              <thead><tr><th>Insumo</th><th>Cantidad</th></tr></thead>
-              <tbody>
-                <tr><td>Harina de trigo</td><td>15.000 Kg</td></tr>
-                <tr><td>Levadura</td><td>0.200 Kg</td></tr>
-                <tr><td>Núcleo</td><td>0.145 Kg</td></tr>
-                <tr><td>Sal</td><td>0.320 Kg</td></tr>
-                <tr><td>Aceite</td><td>0.300 Kg</td></tr>
-                <tr><td>Azúcar</td><td>0.406 Kg</td></tr>
-                <tr><td>Manteca</td><td>0.406 Kg</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="card p-5">
-            <h3 class="font-bold text-amber-900 mb-3">📊 Consolidado de distribución</h3>
-            <div class="text-xs text-stone-500 mb-3">Producción del día · Destinos</div>
-            <canvas id="chartDistribucion" height="180"></canvas>
-          </div>
         </div>
       </section>
 
       <!-- ============ PUNTOS DE VENTA ============ -->
       <section id="puntos" class="view">
         <div class="grid grid-cols-4 gap-4 mb-6">
-          <div class="card p-5 cursor-pointer hover:shadow-lg transition" onclick="selectPunto('panaderia')">
-            <div class="text-3xl mb-2">🏭</div>
-            <div class="font-bold text-amber-900">Panadería</div>
-            <div class="text-xs text-stone-500">Venta directa</div>
-            <div class="text-xl font-bold mt-2">$18,450</div>
-          </div>
-          <div class="card p-5 cursor-pointer hover:shadow-lg transition" onclick="selectPunto('kiosko')">
-            <div class="text-3xl mb-2">🏪</div>
-            <div class="font-bold text-amber-900">Kiosko Manuelita</div>
-            <div class="text-xs text-stone-500">Punto de venta 1</div>
-            <div class="text-xl font-bold mt-2">$12,300</div>
-          </div>
-          <div class="card p-5 cursor-pointer hover:shadow-lg transition" onclick="selectPunto('pto2')">
-            <div class="text-3xl mb-2">🛒</div>
-            <div class="font-bold text-amber-900">Punto Venta 2</div>
-            <div class="text-xs text-stone-500">Punto de venta 2</div>
-            <div class="text-xl font-bold mt-2">$9,800</div>
-          </div>
-          <div class="card p-5 cursor-pointer hover:shadow-lg transition" onclick="selectPunto('mensajeros')">
-            <div class="text-3xl mb-2">🛵</div>
-            <div class="font-bold text-amber-900">Mensajeros</div>
-            <div class="text-xs text-stone-500">Delivery</div>
-            <div class="text-xl font-bold mt-2">$8,200</div>
-          </div>
-        </div>
-
-        <div class="card p-6">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-amber-900">🏭 Panadería · Inventario y ventas</h3>
-            <div class="flex gap-2">
-              <button class="btn btn-outline">+ Transferir a punto</button>
-              <button class="btn btn-primary">+ Registrar venta</button>
-            </div>
-          </div>
-          <table>
-            <thead>
-              <tr><th>Producto</th><th>Inv. Inicial</th><th>Entradas</th><th>Ventas</th><th>Merma</th><th>Inv. Final</th><th>Precio</th><th>Importe</th><th>Transf</th><th>Efectivo</th></tr>
-            </thead>
-            <tbody>
-              <tr><td>Pan Suave caña 130g</td><td>12</td><td>180</td><td>165</td><td>3</td><td>24</td><td>$85</td><td>$14,025</td><td>$9,350</td><td>$4,675</td></tr>
-              <tr><td>Pan Suave bola 40g</td><td>8</td><td>240</td><td>220</td><td>5</td><td>23</td><td>$45</td><td>$9,900</td><td>$6,435</td><td>$3,465</td></tr>
-              <tr><td>Pan de molde 450g</td><td>5</td><td>100</td><td>88</td><td>2</td><td>15</td><td>$180</td><td>$15,840</td><td>$11,088</td><td>$4,752</td></tr>
-              <tr><td>Masa pizza 90g</td><td>10</td><td>144</td><td>130</td><td>4</td><td>20</td><td>$95</td><td>$12,350</td><td>$8,028</td><td>$4,322</td></tr>
-              <tr><td>Galletones paquete</td><td>4</td><td>80</td><td>72</td><td>2</td><td>10</td><td>$120</td><td>$8,640</td><td>$5,616</td><td>$3,024</td></tr>
-              <tr><td>Bolsa pan 10 bolas 30g</td><td>6</td><td>60</td><td>58</td><td>1</td><td>7</td><td>$220</td><td>$12,760</td><td>$8,294</td><td>$4,466</td></tr>
-            </tbody>
-            <tfoot>
-              <tr class="bg-amber-50 font-bold"><td colspan="7">TOTAL</td><td>$73,515</td><td>$48,811</td><td>$24,704</td></tr>
-            </tfoot>
-          </table>
+          <div class="card p-5"><div class="text-3xl mb-2">🏭</div><div class="font-bold text-amber-900">Panadería</div><div class="text-xl font-bold mt-2">$18,450</div></div>
+          <div class="card p-5"><div class="text-3xl mb-2">🏪</div><div class="font-bold text-amber-900">Kiosko Manuelita</div><div class="text-xl font-bold mt-2">$12,300</div></div>
+          <div class="card p-5"><div class="text-3xl mb-2">🛒</div><div class="font-bold text-amber-900">Punto Venta 2</div><div class="text-xl font-bold mt-2">$9,800</div></div>
+          <div class="card p-5"><div class="text-3xl mb-2">🛵</div><div class="font-bold text-amber-900">Mensajeros</div><div class="text-xl font-bold mt-2">$8,200</div></div>
         </div>
       </section>
 
       <!-- ============ CLIENTES ============ -->
       <section id="clientes" class="view">
-        <div class="flex gap-2 mb-6">
-          <button class="btn btn-primary">+ Nuevo cliente</button>
-          <button class="btn btn-outline">Importar desde Excel</button>
-          <button class="btn btn-outline">Exportar lista</button>
-        </div>
-
-        <div class="grid grid-cols-3 gap-4 mb-6">
-          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Clientes activos</div><div class="text-3xl font-bold text-amber-900 mt-1">247</div></div>
-          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Clientes mayoristas</div><div class="text-3xl font-bold text-amber-900 mt-1">18</div></div>
-          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Ticket promedio</div><div class="text-3xl font-bold text-amber-900 mt-1">$197</div></div>
-        </div>
-
         <div class="card p-6">
           <h3 class="font-bold text-amber-900 mb-4">👥 Directorio de clientes</h3>
           <table>
-            <thead><tr><th>Nombre</th><th>Tipo</th><th>Teléfono</th><th>Zona</th><th>Compras mes</th><th>Última compra</th><th>Pago preferido</th></tr></thead>
+            <thead><tr><th>Nombre</th><th>Tipo</th><th>Teléfono</th><th>Zona</th><th>Compras mes</th></tr></thead>
             <tbody>
-              <tr><td class="font-semibold">Restaurante La Cubana</td><td><span class="badge bg-purple-100 text-purple-700">Mayorista</span></td><td>5388-1234</td><td>Vedado</td><td>$12,450</td><td>22/09/2026</td><td>Transfermóvil</td></tr>
-              <tr><td class="font-semibold">Cafetería El Rincón</td><td><span class="badge bg-purple-100 text-purple-700">Mayorista</span></td><td>5277-5678</td><td>Centro</td><td>$8,920</td><td>22/09/2026</td><td>EnZona</td></tr>
-              <tr><td class="font-semibold">María González</td><td><span class="badge bg-blue-100 text-blue-700">Regular</span></td><td>5445-9012</td><td>Plaza</td><td>$1,240</td><td>21/09/2026</td><td>Efectivo</td></tr>
-              <tr><td class="font-semibold">Pedro Álvarez</td><td><span class="badge bg-blue-100 text-blue-700">Regular</span></td><td>5332-4455</td><td>Vedado</td><td>$890</td><td>20/09/2026</td><td>Transfermóvil</td></tr>
-              <tr><td class="font-semibold">Ana Rodríguez</td><td><span class="badge bg-green-100 text-green-700">Nuevo</span></td><td>5511-7788</td><td>Centro</td><td>$320</td><td>22/09/2026</td><td>EnZona</td></tr>
-              <tr><td class="font-semibold">Hotel Nacional (evento)</td><td><span class="badge bg-purple-100 text-purple-700">Mayorista</span></td><td>7865-4321</td><td>Vedado</td><td>$28,500</td><td>19/09/2026</td><td>Transferencia</td></tr>
+              <tr><td class="font-semibold">Restaurante La Cubana</td><td><span class="badge bg-purple-100 text-purple-700">Mayorista</span></td><td>5388-1234</td><td>Vedado</td><td>$12,450</td></tr>
+              <tr><td class="font-semibold">Cafetería El Rincón</td><td><span class="badge bg-purple-100 text-purple-700">Mayorista</span></td><td>5277-5678</td><td>Centro</td><td>$8,920</td></tr>
+              <tr><td class="font-semibold">María González</td><td><span class="badge bg-blue-100 text-blue-700">Regular</span></td><td>5445-9012</td><td>Plaza</td><td>$1,240</td></tr>
             </tbody>
           </table>
         </div>
@@ -471,26 +424,13 @@
 
       <!-- ============ MENSAJEROS ============ -->
       <section id="mensajeros" class="view">
-        <div class="flex gap-2 mb-6">
-          <button class="btn btn-primary">+ Nuevo mensajero</button>
-          <button class="btn btn-outline">Asignar ruta</button>
-        </div>
-
-        <div class="grid grid-cols-3 gap-4 mb-6">
-          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Pedidos hoy</div><div class="text-3xl font-bold text-amber-900 mt-1">23</div></div>
-          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Tiempo promedio entrega</div><div class="text-3xl font-bold text-amber-900 mt-1">38 min</div></div>
-          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Ingresos delivery</div><div class="text-3xl font-bold text-amber-900 mt-1">$8,200</div></div>
-        </div>
-
         <div class="card p-6">
           <h3 class="font-bold text-amber-900 mb-4">🛵 Equipo de mensajeros</h3>
           <table>
-            <thead><tr><th>Mensajero</th><th>Teléfono</th><th>Zona</th><th>Estado</th><th>Pedidos hoy</th><th>Ventas hoy</th><th>Comisión</th><th>Liquidación</th></tr></thead>
+            <thead><tr><th>Mensajero</th><th>Zona</th><th>Estado</th><th>Pedidos</th><th>Ventas</th><th>Comisión</th></tr></thead>
             <tbody>
-              <tr><td class="font-semibold">Roberto López</td><td>5388-2211</td><td>Vedado</td><td><span class="badge bg-green-100 text-green-700">● En ruta</span></td><td>14</td><td>$4,820</td><td>8%</td><td>$385.60</td></tr>
-              <tr><td class="font-semibold">María Pérez</td><td>5277-3344</td><td>Centro</td><td><span class="badge bg-green-100 text-green-700">● En ruta</span></td><td>9</td><td>$3,380</td><td>8%</td><td>$270.40</td></tr>
-              <tr><td class="font-semibold">Jorge Sánchez</td><td>5445-5566</td><td>Plaza</td><td><span class="badge bg-stone-200 text-stone-600">● Disponible</span></td><td>0</td><td>$0</td><td>8%</td><td>$0</td></tr>
-              <tr><td class="font-semibold">Luis Fernández</td><td>5332-7788</td><td>Marianao</td><td><span class="badge bg-blue-100 text-blue-700">● Descanso</span></td><td>0</td><td>$0</td><td>8%</td><td>$0</td></tr>
+              <tr><td class="font-semibold">Roberto López</td><td>Vedado</td><td><span class="badge bg-green-100 text-green-700">En ruta</span></td><td>14</td><td>$4,820</td><td>$385.60</td></tr>
+              <tr><td class="font-semibold">María Pérez</td><td>Centro</td><td><span class="badge bg-green-100 text-green-700">En ruta</span></td><td>9</td><td>$3,380</td><td>$270.40</td></tr>
             </tbody>
           </table>
         </div>
@@ -498,20 +438,13 @@
 
       <!-- ============ PEDIDOS ============ -->
       <section id="pedidos" class="view">
-        <div class="flex gap-2 mb-6">
-          <button class="btn btn-primary">+ Nuevo pedido</button>
-          <button class="btn btn-outline">Pedidos por WhatsApp</button>
-        </div>
-
         <div class="card p-6">
           <h3 class="font-bold text-amber-900 mb-4">📋 Pedidos del día</h3>
           <table>
-            <thead><tr><th>#</th><th>Cliente</th><th>Productos</th><th>Total</th><th>Pago</th><th>Entrega</th><th>Mensajero</th><th>Estado</th></tr></thead>
+            <thead><tr><th>#</th><th>Cliente</th><th>Productos</th><th>Total</th><th>Estado</th></tr></thead>
             <tbody>
-              <tr><td>#1247</td><td>Restaurante La Cubana</td><td>Pan molde x20, Pizza x15</td><td>$5,850</td><td>Transfermóvil</td><td>11:30</td><td>Roberto L.</td><td><span class="badge bg-green-100 text-green-700">Entregado</span></td></tr>
-              <tr><td>#1248</td><td>María González</td><td>Bolsa 10 bolas x2</td><td>$440</td><td>EnZona</td><td>12:15</td><td>María P.</td><td><span class="badge bg-blue-100 text-blue-700">En camino</span></td></tr>
-              <tr><td>#1249</td><td>Cafetería El Rincón</td><td>Pan caña x50, Galletones x10</td><td>$5,450</td><td>Transferencia</td><td>13:00</td><td>Roberto L.</td><td><span class="badge bg-yellow-100 text-yellow-700">Preparando</span></td></tr>
-              <tr><td>#1250</td><td>Pedro Álvarez</td><td>Pan de gloria x5</td><td>$625</td><td>Efectivo</td><td>14:00</td><td>Jorge S.</td><td><span class="badge bg-stone-200 text-stone-600">Pendiente</span></td></tr>
+              <tr><td>#1247</td><td>Restaurante La Cubana</td><td>Pan molde x20, Pizza x15</td><td>$5,850</td><td><span class="badge bg-green-100 text-green-700">Entregado</span></td></tr>
+              <tr><td>#1248</td><td>María González</td><td>Bolsa 10 bolas x2</td><td>$440</td><td><span class="badge bg-blue-100 text-blue-700">En camino</span></td></tr>
             </tbody>
           </table>
         </div>
@@ -520,71 +453,31 @@
       <!-- ============ CAJA ============ -->
       <section id="caja" class="view">
         <div class="grid grid-cols-4 gap-4 mb-6">
-          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Efectivo</div><div class="text-3xl font-bold text-amber-900 mt-1">$17,550</div><div class="text-xs text-stone-500">36% del total</div></div>
-          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Transfermóvil</div><div class="text-3xl font-bold text-amber-900 mt-1">$19,800</div><div class="text-xs text-stone-500">41% del total</div></div>
-          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">EnZona</div><div class="text-3xl font-bold text-amber-900 mt-1">$11,400</div><div class="text-xs text-stone-500">23% del total</div></div>
-          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Total día</div><div class="text-3xl font-bold text-green-700 mt-1">$48,750</div><div class="text-xs text-stone-500">Cuadre OK ✓</div></div>
-        </div>
-
-        <div class="card p-6">
-          <h3 class="font-bold text-amber-900 mb-4">💰 Movimientos de caja del día</h3>
-          <table>
-            <thead><tr><th>Hora</th><th>Punto</th><th>Concepto</th><th>Método</th><th>Referencia</th><th>Monto</th><th>Cajero</th></tr></thead>
-            <tbody>
-              <tr><td>10:42</td><td>Panadería</td><td>Venta mostrador</td><td>Transfermóvil</td><td>TR-882714</td><td class="text-green-700 font-bold">+$850</td><td>Ana G.</td></tr>
-              <tr><td>10:38</td><td>Kiosko Manuelita</td><td>Venta mostrador</td><td>Efectivo</td><td>-</td><td class="text-green-700 font-bold">+$420</td><td>Manuel R.</td></tr>
-              <tr><td>10:25</td><td>Mensajeros</td><td>Pedido #1248</td><td>EnZona</td><td>EZ-554218</td><td class="text-green-700 font-bold">+$440</td><td>María P.</td></tr>
-              <tr><td>10:15</td><td>Punto Venta 2</td><td>Venta mostrador</td><td>Transfermóvil</td><td>TR-882710</td><td class="text-green-700 font-bold">+$1,250</td><td>Luis F.</td></tr>
-              <tr><td>09:58</td><td>Panadería</td><td>Devolución</td><td>Efectivo</td><td>-</td><td class="text-red-700 font-bold">-$85</td><td>Ana G.</td></tr>
-            </tbody>
-          </table>
+          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Efectivo</div><div class="text-3xl font-bold text-amber-900 mt-1">$17,550</div></div>
+          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Transfermóvil</div><div class="text-3xl font-bold text-amber-900 mt-1">$19,800</div></div>
+          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">EnZona</div><div class="text-3xl font-bold text-amber-900 mt-1">$11,400</div></div>
+          <div class="kpi-card card p-5"><div class="text-xs text-stone-600">Total día</div><div class="text-3xl font-bold text-green-700 mt-1">$48,750</div></div>
         </div>
       </section>
 
       <!-- ============ REPORTES ============ -->
       <section id="reportes" class="view">
-        <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="grid grid-cols-3 gap-4">
           <div class="card p-5 cursor-pointer hover:shadow-lg transition">
             <div class="text-3xl mb-2">📄</div>
             <div class="font-bold text-amber-900">Reporte mensual ONAT</div>
-            <div class="text-xs text-stone-500 mt-1">Libro de ventas · Impuestos Mypyme</div>
             <button class="btn btn-outline mt-3 w-full">Generar PDF</button>
           </div>
           <div class="card p-5 cursor-pointer hover:shadow-lg transition">
             <div class="text-3xl mb-2">📊</div>
             <div class="font-bold text-amber-900">Balance de producción</div>
-            <div class="text-xs text-stone-500 mt-1">Insumos vs productos · Merma</div>
             <button class="btn btn-outline mt-3 w-full">Generar PDF</button>
           </div>
           <div class="card p-5 cursor-pointer hover:shadow-lg transition">
-            <div class="text-3xl mb-2">💼</div>
-            <div class="font-bold text-amber-900">Estado de resultados</div>
-            <div class="text-xs text-stone-500 mt-1">Costos, ingresos y utilidad</div>
+            <div class="text-3xl mb-2">📈</div>
+            <div class="font-bold text-amber-900">Análisis de rendimiento</div>
             <button class="btn btn-outline mt-3 w-full">Generar PDF</button>
           </div>
-          <div class="card p-5 cursor-pointer hover:shadow-lg transition">
-            <div class="text-3xl mb-2">📦</div>
-            <div class="font-bold text-amber-900">Inventario valorizado</div>
-            <div class="text-xs text-stone-500 mt-1">MP y PT al costo</div>
-            <button class="btn btn-outline mt-3 w-full">Generar PDF</button>
-          </div>
-          <div class="card p-5 cursor-pointer hover:shadow-lg transition">
-            <div class="text-3xl mb-2">👥</div>
-            <div class="font-bold text-amber-900">Análisis de clientes</div>
-            <div class="text-xs text-stone-500 mt-1">Top compradores · ABC</div>
-            <button class="btn btn-outline mt-3 w-full">Generar PDF</button>
-          </div>
-          <div class="card p-5 cursor-pointer hover:shadow-lg transition">
-            <div class="text-3xl mb-2">🛵</div>
-            <div class="font-bold text-amber-900">Liquidación mensajeros</div>
-            <div class="text-xs text-stone-500 mt-1">Comisiones semanales</div>
-            <button class="btn btn-outline mt-3 w-full">Generar PDF</button>
-          </div>
-        </div>
-
-        <div class="card p-6">
-          <h3 class="font-bold text-amber-900 mb-4">📈 Resumen mensual · Septiembre 2026</h3>
-          <canvas id="chartMensual" height="80"></canvas>
         </div>
       </section>
 
@@ -599,59 +492,151 @@
       <h2 id="modalTitle" class="text-xl font-bold text-amber-900">Nueva Receta</h2>
       <button onclick="closeRecetaModal()" class="text-stone-400 hover:text-stone-600 text-2xl">×</button>
     </div>
-
     <form id="formReceta" onsubmit="guardarReceta(event)">
       <input type="hidden" id="recetaId">
-      
       <div class="mb-4">
-        <label class="block text-sm font-semibold text-stone-700 mb-2">Nombre del producto *</label>
-        <input type="text" id="nombreProducto" class="form-input" required placeholder="Ej: Pan Suave caña 130g">
+        <label class="form-label">Nombre del producto *</label>
+        <input type="text" id="nombreProducto" class="form-input" required>
+      </div>
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="form-label">Categoría *</label>
+          <select id="categoria" class="form-input" required>
+            <option value="">Seleccionar...</option>
+            <option>Panes</option><option>Pizzas</option><option>Galletas</option><option>Dulces</option><option>Otros</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Unidades por masa *</label>
+          <input type="number" id="unidadesPorMasa" class="form-input" required min="1">
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label">Precio de venta (CUP)</label>
+        <input type="number" id="precioVenta" class="form-input" min="0" step="0.01">
+      </div>
+      <div class="mb-6">
+        <div class="flex justify-between items-center mb-3">
+          <label class="form-label">Ingredientes *</label>
+          <button type="button" onclick="agregarIngrediente()" class="btn btn-outline text-xs">+ Agregar</button>
+        </div>
+        <div id="ingredientesContainer"></div>
+      </div>
+      <div class="flex gap-2 justify-end">
+        <button type="button" onclick="closeRecetaModal()" class="btn btn-outline">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL RENDIMIENTO -->
+<div id="modalRendimiento" class="modal">
+  <div class="modal-content">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-bold text-amber-900">Registrar Producción Real</h2>
+      <button onclick="closeRendimientoModal()" class="text-stone-400 hover:text-stone-600 text-2xl">×</button>
+    </div>
+    <form id="formRendimiento" onsubmit="guardarRendimiento(event)">
+      <div class="alert-banner alert-info mb-4">
+        <span class="text-xl">💡</span>
+        <div class="text-sm">
+          <strong>Registra lo que realmente salió del horno.</strong> El sistema calculará automáticamente la desviación respecto a la receta.
+        </div>
       </div>
 
       <div class="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <label class="block text-sm font-semibold text-stone-700 mb-2">Categoría *</label>
-          <select id="categoria" class="form-input" required>
-            <option value="">Seleccionar...</option>
-            <option value="Panes">Panes</option>
-            <option value="Pizzas">Pizzas</option>
-            <option value="Galletas">Galletas</option>
-            <option value="Dulces">Dulces</option>
-            <option value="Salados">Salados</option>
-            <option value="Otros">Otros</option>
-          </select>
+          <label class="form-label">Producto *</label>
+          <select id="rendProducto" class="form-input" required onchange="calcularEsperado()"></select>
         </div>
         <div>
-          <label class="block text-sm font-semibold text-stone-700 mb-2">Unidades por masa *</label>
-          <input type="number" id="unidadesPorMasa" class="form-input" required min="1" step="1" placeholder="Ej: 12">
+          <label class="form-label">Panadero responsable *</label>
+          <select id="rendPanadero" class="form-input" required>
+            <option value="">Seleccionar...</option>
+            <option>Carlos Martínez</option>
+            <option>Luis Rodríguez</option>
+            <option>Pedro Gómez</option>
+            <option>Ana Fernández</option>
+            <option>Jorge Sánchez</option>
+          </select>
         </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-4 mb-4">
+        <div>
+          <label class="form-label">Masas producidas *</label>
+          <input type="number" id="rendMasas" class="form-input" required min="1" onchange="calcularEsperado()">
+        </div>
+        <div>
+          <label class="form-label">Unidades esperadas</label>
+          <input type="number" id="rendEsperado" class="form-input bg-stone-100" readonly>
+          <div class="text-xs text-stone-500 mt-1">Calculado desde receta</div>
+        </div>
+        <div>
+          <label class="form-label">Unidades reales *</label>
+          <input type="number" id="rendReal" class="form-input" required min="0" onchange="calcularDesviacion()">
+        </div>
+      </div>
+
+      <div id="desviacionBox" class="alert-banner mb-4" style="display:none;"></div>
+
+      <div class="mb-4">
+        <label class="form-label">Causa de desviación</label>
+        <select id="rendCausa" class="form-input">
+          <option value="">Seleccionar (si aplica)...</option>
+          <optgroup label="⚠️ Merma (producción menor)">
+            <option>Harina de baja calidad</option>
+            <option>Levadura vencida o débil</option>
+            <option>Error de medición</option>
+            <option>Problema con horno (quemado)</option>
+            <option>Masa no fermentó bien</option>
+            <option>Se cayó al suelo</option>
+            <option>Rechazo de cliente (forma)</option>
+          </optgroup>
+          <optgroup label="✅ Sobrecumplimiento (producción mayor)">
+            <option>Masas más pequeñas de lo normal</option>
+            <option>Harina rindió más</option>
+            <option>Sobreproducción intencional</option>
+            <option>Error de medición (exceso)</option>
+          </optgroup>
+          <optgroup label="📋 Otros">
+            <option>Normal (dentro del margen)</option>
+            <option>Otro (especificar en notas)</option>
+          </optgroup>
+        </select>
       </div>
 
       <div class="mb-4">
-        <label class="block text-sm font-semibold text-stone-700 mb-2">Precio de venta (CUP)</label>
-        <input type="number" id="precioVenta" class="form-input" min="0" step="0.01" placeholder="Ej: 85.00">
+        <label class="form-label">Acción tomada con el excedente/deficiencia</label>
+        <select id="rendAccion" class="form-input">
+          <option value="">Seleccionar...</option>
+          <option>Se envió a inventario completo</option>
+          <option>Se vendió a precio regular</option>
+          <option>Se vendió con descuento</option>
+          <option>Se donó</option>
+          <option>Se desechó</option>
+          <option>Se guardó para mañana</option>
+          <option>Se compensó con otra producción</option>
+          <option>No aplica</option>
+        </select>
       </div>
 
       <div class="mb-6">
-        <div class="flex justify-between items-center mb-3">
-          <label class="block text-sm font-semibold text-stone-700">Ingredientes *</label>
-          <button type="button" onclick="agregarIngrediente()" class="btn btn-outline text-xs">+ Agregar ingrediente</button>
-        </div>
-        <div id="ingredientesContainer" class="space-y-2">
-          <!-- Ingredientes dinámicos -->
-        </div>
+        <label class="form-label">Notas adicionales</label>
+        <textarea id="rendNotas" class="form-input" rows="2" placeholder="Observaciones del panadero o administrador..."></textarea>
       </div>
 
       <div class="flex gap-2 justify-end">
-        <button type="button" onclick="closeRecetaModal()" class="btn btn-outline">Cancelar</button>
-        <button type="submit" class="btn btn-primary">Guardar receta</button>
+        <button type="button" onclick="closeRendimientoModal()" class="btn btn-outline">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar registro</button>
       </div>
     </form>
   </div>
 </div>
 
 <script>
-  // Datos de insumos disponibles
+  // ============ DATOS BASE ============
   const insumosDisponibles = [
     { codigo: '001', nombre: 'Harina de trigo', um: 'Kg', precio: 85 },
     { codigo: '002', nombre: 'Levadura', um: 'Kg', precio: 220 },
@@ -662,95 +647,29 @@
     { codigo: '007', nombre: 'Manteca', um: 'Kg', precio: 160 }
   ];
 
-  // Recetas por defecto basadas en el Excel
   const recetasDefault = [
-    {
-      id: 1,
-      nombre: 'Pan Suave caña 130g',
-      categoria: 'Panes',
-      unidadesPorMasa: 12,
-      precioVenta: 85,
-      ingredientes: [
-        { insumo: '001', cantidad: 15 },
-        { insumo: '002', cantidad: 0.2 },
-        { insumo: '003', cantidad: 0.145 },
-        { insumo: '004', cantidad: 0.32 },
-        { insumo: '005', cantidad: 0.3 },
-        { insumo: '006', cantidad: 0.406 },
-        { insumo: '007', cantidad: 0.406 }
-      ],
-      fechaModificacion: '2026-09-22'
-    },
-    {
-      id: 2,
-      nombre: 'Pan Suave bola 40g',
-      categoria: 'Panes',
-      unidadesPorMasa: 20,
-      precioVenta: 45,
-      ingredientes: [
-        { insumo: '001', cantidad: 15 },
-        { insumo: '002', cantidad: 0.2 },
-        { insumo: '003', cantidad: 0.145 },
-        { insumo: '004', cantidad: 0.32 },
-        { insumo: '005', cantidad: 0.3 },
-        { insumo: '006', cantidad: 0.406 },
-        { insumo: '007', cantidad: 0.406 }
-      ],
-      fechaModificacion: '2026-09-22'
-    },
-    {
-      id: 3,
-      nombre: 'Pan de molde 450g',
-      categoria: 'Panes',
-      unidadesPorMasa: 10,
-      precioVenta: 180,
-      ingredientes: [
-        { insumo: '001', cantidad: 15 },
-        { insumo: '002', cantidad: 0.2 },
-        { insumo: '003', cantidad: 0.145 },
-        { insumo: '004', cantidad: 0.32 },
-        { insumo: '005', cantidad: 0.3 },
-        { insumo: '006', cantidad: 0.6 },
-        { insumo: '007', cantidad: 0.5 }
-      ],
-      fechaModificacion: '2026-09-22'
-    },
-    {
-      id: 4,
-      nombre: 'Masa de pizza 90g',
-      categoria: 'Pizzas',
-      unidadesPorMasa: 12,
-      precioVenta: 95,
-      ingredientes: [
-        { insumo: '001', cantidad: 15 },
-        { insumo: '002', cantidad: 0.2 },
-        { insumo: '003', cantidad: 0.145 },
-        { insumo: '004', cantidad: 0.4 },
-        { insumo: '005', cantidad: 0.5 }
-      ],
-      fechaModificacion: '2026-09-22'
-    },
-    {
-      id: 5,
-      nombre: 'Galletones paquete',
-      categoria: 'Galletas',
-      unidadesPorMasa: 10,
-      precioVenta: 120,
-      ingredientes: [
-        { insumo: '001', cantidad: 15 },
-        { insumo: '002', cantidad: 0.15 },
-        { insumo: '003', cantidad: 0.1 },
-        { insumo: '004', cantidad: 0.2 },
-        { insumo: '006', cantidad: 0.8 },
-        { insumo: '007', cantidad: 0.6 }
-      ],
-      fechaModificacion: '2026-09-22'
-    }
+    { id: 1, nombre: 'Pan Suave caña 130g', categoria: 'Panes', unidadesPorMasa: 12, precioVenta: 85, ingredientes: [{insumo:'001',cantidad:15},{insumo:'002',cantidad:0.2},{insumo:'003',cantidad:0.145},{insumo:'004',cantidad:0.32},{insumo:'005',cantidad:0.3},{insumo:'006',cantidad:0.406},{insumo:'007',cantidad:0.406}], fechaModificacion: '2026-09-22' },
+    { id: 2, nombre: 'Pan Suave bola 40g', categoria: 'Panes', unidadesPorMasa: 20, precioVenta: 45, ingredientes: [{insumo:'001',cantidad:15},{insumo:'002',cantidad:0.2},{insumo:'003',cantidad:0.145},{insumo:'004',cantidad:0.32},{insumo:'005',cantidad:0.3},{insumo:'006',cantidad:0.406},{insumo:'007',cantidad:0.406}], fechaModificacion: '2026-09-22' },
+    { id: 3, nombre: 'Pan de molde 450g', categoria: 'Panes', unidadesPorMasa: 10, precioVenta: 180, ingredientes: [{insumo:'001',cantidad:15},{insumo:'002',cantidad:0.2},{insumo:'003',cantidad:0.145},{insumo:'004',cantidad:0.32},{insumo:'005',cantidad:0.3},{insumo:'006',cantidad:0.6},{insumo:'007',cantidad:0.5}], fechaModificacion: '2026-09-22' },
+    { id: 4, nombre: 'Masa de pizza 90g', categoria: 'Pizzas', unidadesPorMasa: 12, precioVenta: 95, ingredientes: [{insumo:'001',cantidad:15},{insumo:'002',cantidad:0.2},{insumo:'003',cantidad:0.145},{insumo:'004',cantidad:0.4},{insumo:'005',cantidad:0.5}], fechaModificacion: '2026-09-22' },
+    { id: 5, nombre: 'Galletones paquete', categoria: 'Galletas', unidadesPorMasa: 10, precioVenta: 120, ingredientes: [{insumo:'001',cantidad:15},{insumo:'002',cantidad:0.15},{insumo:'003',cantidad:0.1},{insumo:'004',cantidad:0.2},{insumo:'006',cantidad:0.8},{insumo:'007',cantidad:0.6}], fechaModificacion: '2026-09-22' }
   ];
 
-  // Cargar recetas desde localStorage o usar default
   let recetas = JSON.parse(localStorage.getItem('recetas')) || recetasDefault;
 
+  // Registros de rendimiento (simulados para demo)
+  const registrosDefault = [
+    { id: 1, hora: '05:45', producto: 'Pan Suave caña 130g', panadero: 'Carlos Martínez', masas: 15, esperado: 180, real: 176, causa: 'Masa no fermentó bien', accion: 'Se vendió a precio regular', notas: 'Harina del lote 245 húmeda', fecha: '2026-09-22' },
+    { id: 2, hora: '06:30', producto: 'Pan Suave bola 40g', panadero: 'Carlos Martínez', masas: 20, esperado: 400, real: 412, causa: 'Masas más pequeñas de lo normal', accion: 'Se envió a inventario completo', notas: '', fecha: '2026-09-22' },
+    { id: 3, hora: '07:15', producto: 'Pan de molde 450g', panadero: 'Luis Rodríguez', masas: 10, esperado: 100, real: 100, causa: 'Normal (dentro del margen)', accion: 'No aplica', notas: 'Producción perfecta', fecha: '2026-09-22' },
+    { id: 4, hora: '08:45', producto: 'Masa de pizza 90g', panadero: 'Pedro Gómez', masas: 12, esperado: 144, real: 138, causa: 'Problema con horno (quemado)', accion: 'Se vendió con descuento', notas: '6 unidades quemadas, horno descalibrado', fecha: '2026-09-22' },
+    { id: 5, hora: '09:30', producto: 'Galletones paquete', panadero: 'Ana Fernández', masas: 8, esperado: 80, real: 86, causa: 'Harina rindió más', accion: 'Se envió a inventario completo', notas: 'Lote de harina nuevo rinde mejor', fecha: '2026-09-22' },
+    { id: 6, hora: '10:15', producto: 'Pan Suave caña 130g', panadero: 'Carlos Martínez', masas: 10, esperado: 120, real: 118, causa: 'Error de medición', accion: 'Se compensó con otra producción', notas: '', fecha: '2026-09-22' }
+  ];
+
+  let registrosRendimiento = JSON.parse(localStorage.getItem('rendimiento')) || registrosDefault;
+
+  // ============ NAVEGACIÓN ============
   function showView(id, el) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(id).classList.add('active');
@@ -758,184 +677,390 @@
     if (el) el.classList.add('active');
     const titles = {
       dashboard: ['Dashboard General', 'Resumen operativo del día · Martes 22 de Septiembre, 2026'],
-      almacen: ['Almacén de Materias Primas', 'Control de inventario de insumos'],
-      recetas: ['Recetas', 'Gestión de recetas y formulaciones'],
-      produccion: ['Producción', 'Órdenes, recetas y consolidado'],
-      puntos: ['Puntos de Venta', 'Panadería · Kiosko Manuelita · Punto 2 · Mensajeros'],
-      clientes: ['CRM · Clientes', 'Gestión de cartera de clientes'],
-      mensajeros: ['CRM · Mensajeros', 'Equipo de delivery y comisiones'],
-      pedidos: ['Pedidos', 'Gestión de pedidos y entregas'],
-      caja: ['Caja del Día', 'Arqueo y conciliación de pagos'],
-      reportes: ['Reportes y ONAT', 'Informes fiscales y operativos']
+      almacen: ['Almacén', 'Control de materias primas'],
+      recetas: ['Recetas', 'Gestión de formulaciones'],
+      produccion: ['Producción', 'Órdenes planificadas'],
+      rendimiento: ['Control de Rendimiento', 'Merma, sobrecumplimiento y eficiencia'],
+      puntos: ['Puntos de Venta', 'Distribución e inventario'],
+      clientes: ['CRM · Clientes', 'Cartera de clientes'],
+      mensajeros: ['CRM · Mensajeros', 'Equipo de delivery'],
+      pedidos: ['Pedidos', 'Gestión de entregas'],
+      caja: ['Caja del Día', 'Arqueo y conciliación'],
+      reportes: ['Reportes ONAT', 'Informes fiscales']
     };
     document.getElementById('pageTitle').textContent = titles[id][0];
     document.getElementById('pageSubtitle').textContent = titles[id][1];
-    
     if (id === 'recetas') renderRecetas();
+    if (id === 'rendimiento') renderRendimiento();
   }
 
-  function selectPunto(p) {
-    alert('Abriendo detalle del punto: ' + p);
-  }
-
-  // RECETAS
+  // ============ RECETAS ============
   function renderRecetas() {
     const tbody = document.getElementById('recetasBody');
     tbody.innerHTML = '';
-    
-    recetas.forEach(receta => {
-      const costoEstimado = calcularCosto(receta.ingredientes);
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td class="font-semibold">${receta.nombre}</td>
-        <td><span class="badge bg-amber-100 text-amber-700">${receta.categoria}</span></td>
-        <td>${receta.unidadesPorMasa}</td>
-        <td>${receta.ingredientes.length} insumos</td>
-        <td class="font-bold">$${costoEstimado.toFixed(2)}</td>
-        <td class="text-xs text-stone-500">${receta.fechaModificacion}</td>
-        <td>
-          <div class="flex gap-1">
-            <button onclick="editarReceta(${receta.id})" class="btn-icon bg-amber-100 text-amber-700" title="Editar">✏️</button>
-            <button onclick="duplicarReceta(${receta.id})" class="btn-icon bg-blue-100 text-blue-700" title="Duplicar">📋</button>
-            <button onclick="eliminarReceta(${receta.id})" class="btn-icon bg-red-100 text-red-700" title="Eliminar">🗑️</button>
-          </div>
-        </td>
-      `;
-      tbody.appendChild(row);
+    recetas.forEach(r => {
+      const costo = r.ingredientes.reduce((s, i) => s + (insumosDisponibles.find(x => x.codigo === i.insumo)?.precio || 0) * i.cantidad, 0);
+      tbody.innerHTML += `
+        <tr>
+          <td class="font-semibold">${r.nombre}</td>
+          <td><span class="badge bg-amber-100 text-amber-700">${r.categoria}</span></td>
+          <td>${r.unidadesPorMasa}</td>
+          <td>${r.ingredientes.length} insumos</td>
+          <td class="font-bold">$${costo.toFixed(2)}</td>
+          <td class="text-xs text-stone-500">${r.fechaModificacion}</td>
+          <td>
+            <div class="flex gap-1">
+              <button onclick="editarReceta(${r.id})" class="btn-icon bg-amber-100 text-amber-700">✏️</button>
+              <button onclick="duplicarReceta(${r.id})" class="btn-icon bg-blue-100 text-blue-700">📋</button>
+              <button onclick="eliminarReceta(${r.id})" class="btn-icon bg-red-100 text-red-700">🗑️</button>
+            </div>
+          </td>
+        </tr>`;
     });
-
-    // Actualizar KPIs
     document.getElementById('totalRecetas').textContent = recetas.length;
-    const categorias = [...new Set(recetas.map(r => r.categoria))];
-    document.getElementById('totalCategorias').textContent = categorias.length;
-    const promedio = recetas.length > 0 ? (recetas.reduce((sum, r) => sum + r.ingredientes.length, 0) / recetas.length).toFixed(1) : 0;
-    document.getElementById('promedioInsumos').textContent = promedio;
+    document.getElementById('totalCategorias').textContent = [...new Set(recetas.map(r => r.categoria))].length;
+    document.getElementById('promedioInsumos').textContent = recetas.length ? (recetas.reduce((s,r) => s + r.ingredientes.length, 0) / recetas.length).toFixed(1) : 0;
   }
 
-  function calcularCosto(ingredientes) {
-    return ingredientes.reduce((total, ing) => {
-      const insumo = insumosDisponibles.find(i => i.codigo === ing.insumo);
-      return total + (insumo ? insumo.precio * ing.cantidad : 0);
-    }, 0);
-  }
-
-  function openRecetaModal(receta = null) {
+  function openRecetaModal(r = null) {
     document.getElementById('modalReceta').classList.add('active');
     document.getElementById('formReceta').reset();
     document.getElementById('ingredientesContainer').innerHTML = '';
-    
-    if (receta) {
+    if (r) {
       document.getElementById('modalTitle').textContent = 'Editar Receta';
-      document.getElementById('recetaId').value = receta.id;
-      document.getElementById('nombreProducto').value = receta.nombre;
-      document.getElementById('categoria').value = receta.categoria;
-      document.getElementById('unidadesPorMasa').value = receta.unidadesPorMasa;
-      document.getElementById('precioVenta').value = receta.precioVenta || '';
-      
-      receta.ingredientes.forEach(ing => agregarIngrediente(ing));
+      document.getElementById('recetaId').value = r.id;
+      document.getElementById('nombreProducto').value = r.nombre;
+      document.getElementById('categoria').value = r.categoria;
+      document.getElementById('unidadesPorMasa').value = r.unidadesPorMasa;
+      document.getElementById('precioVenta').value = r.precioVenta || '';
+      r.ingredientes.forEach(i => agregarIngrediente(i));
     } else {
       document.getElementById('modalTitle').textContent = 'Nueva Receta';
-      document.getElementById('recetaId').value = '';
       agregarIngrediente();
     }
   }
-
-  function closeRecetaModal() {
-    document.getElementById('modalReceta').classList.remove('active');
-  }
-
-  function agregarIngrediente(ingrediente = null) {
-    const container = document.getElementById('ingredientesContainer');
+  function closeRecetaModal() { document.getElementById('modalReceta').classList.remove('active'); }
+  function agregarIngrediente(ing = null) {
+    const c = document.getElementById('ingredientesContainer');
     const row = document.createElement('div');
     row.className = 'ingrediente-row';
-    
-    const insumoValue = ingrediente ? ingrediente.insumo : '';
-    const cantidadValue = ingrediente ? ingrediente.cantidad : '';
-    
     row.innerHTML = `
       <select class="ingrediente-insumo" required>
-        <option value="">Seleccionar insumo...</option>
-        ${insumosDisponibles.map(i => `<option value="${i.codigo}" ${i.codigo === insumoValue ? 'selected' : ''}>${i.nombre} (${i.um})</option>`).join('')}
+        <option value="">Seleccionar...</option>
+        ${insumosDisponibles.map(i => `<option value="${i.codigo}" ${ing?.insumo === i.codigo ? 'selected' : ''}>${i.nombre} (${i.um})</option>`).join('')}
       </select>
-      <input type="number" class="ingrediente-cantidad" step="0.001" min="0" placeholder="Cantidad" value="${cantidadValue}" required>
+      <input type="number" class="ingrediente-cantidad" step="0.001" min="0" value="${ing?.cantidad || ''}" required>
       <div class="text-xs text-stone-500">Kg</div>
-      <button type="button" onclick="this.parentElement.remove()" class="btn-icon bg-red-100 text-red-700">🗑️</button>
-    `;
-    
-    container.appendChild(row);
+      <button type="button" onclick="this.parentElement.remove()" class="btn-icon bg-red-100 text-red-700">🗑️</button>`;
+    c.appendChild(row);
   }
-
-  function guardarReceta(event) {
-    event.preventDefault();
-    
+  function guardarReceta(e) {
+    e.preventDefault();
     const id = document.getElementById('recetaId').value;
-    const nombre = document.getElementById('nombreProducto').value;
-    const categoria = document.getElementById('categoria').value;
-    const unidadesPorMasa = parseInt(document.getElementById('unidadesPorMasa').value);
-    const precioVenta = parseFloat(document.getElementById('precioVenta').value) || 0;
-    
     const ingredientes = [];
-    document.querySelectorAll('.ingrediente-row').forEach(row => {
-      const insumo = row.querySelector('.ingrediente-insumo').value;
-      const cantidad = parseFloat(row.querySelector('.ingrediente-cantidad').value);
-      if (insumo && cantidad) {
-        ingredientes.push({ insumo, cantidad });
-      }
+    document.querySelectorAll('.ingrediente-row').forEach(r => {
+      const ins = r.querySelector('.ingrediente-insumo').value;
+      const cant = parseFloat(r.querySelector('.ingrediente-cantidad').value);
+      if (ins && cant) ingredientes.push({ insumo: ins, cantidad: cant });
     });
-    
-    if (ingredientes.length === 0) {
-      alert('Debe agregar al menos un ingrediente');
-      return;
-    }
-    
+    if (!ingredientes.length) { alert('Agregue al menos un ingrediente'); return; }
     const receta = {
       id: id ? parseInt(id) : Date.now(),
-      nombre,
-      categoria,
-      unidadesPorMasa,
-      precioVenta,
+      nombre: document.getElementById('nombreProducto').value,
+      categoria: document.getElementById('categoria').value,
+      unidadesPorMasa: parseInt(document.getElementById('unidadesPorMasa').value),
+      precioVenta: parseFloat(document.getElementById('precioVenta').value) || 0,
       ingredientes,
       fechaModificacion: new Date().toISOString().split('T')[0]
     };
-    
-    if (id) {
-      const index = recetas.findIndex(r => r.id === parseInt(id));
-      recetas[index] = receta;
-    } else {
-      recetas.push(receta);
-    }
-    
+    if (id) { const idx = recetas.findIndex(r => r.id === parseInt(id)); recetas[idx] = receta; }
+    else recetas.push(receta);
     localStorage.setItem('recetas', JSON.stringify(recetas));
     closeRecetaModal();
     renderRecetas();
-    
-    alert('Receta guardada exitosamente');
   }
-
-  function editarReceta(id) {
-    const receta = recetas.find(r => r.id === id);
-    if (receta) openRecetaModal(receta);
-  }
-
+  function editarReceta(id) { openRecetaModal(recetas.find(r => r.id === id)); }
   function duplicarReceta(id) {
-    const receta = recetas.find(r => r.id === id);
-    if (receta) {
-      const nueva = { ...receta, id: Date.now(), nombre: receta.nombre + ' (copia)', fechaModificacion: new Date().toISOString().split('T')[0] };
-      recetas.push(nueva);
-      localStorage.setItem('recetas', JSON.stringify(recetas));
-      renderRecetas();
-    }
+    const r = recetas.find(x => x.id === id);
+    recetas.push({ ...r, id: Date.now(), nombre: r.nombre + ' (copia)' });
+    localStorage.setItem('recetas', JSON.stringify(recetas));
+    renderRecetas();
   }
-
   function eliminarReceta(id) {
-    if (confirm('¿Está seguro de eliminar esta receta?')) {
+    if (confirm('¿Eliminar esta receta?')) {
       recetas = recetas.filter(r => r.id !== id);
       localStorage.setItem('recetas', JSON.stringify(recetas));
       renderRecetas();
     }
   }
 
-  // Charts
+  // ============ RENDIMIENTO ============
+  function openRendimientoModal() {
+    document.getElementById('modalRendimiento').classList.add('active');
+    document.getElementById('formRendimiento').reset();
+    document.getElementById('desviacionBox').style.display = 'none';
+    const sel = document.getElementById('rendProducto');
+    sel.innerHTML = '<option value="">Seleccionar producto...</option>' + recetas.map(r => `<option value="${r.id}">${r.nombre} (${r.unidadesPorMasa} uds/masa)</option>`).join('');
+  }
+  function closeRendimientoModal() { document.getElementById('modalRendimiento').classList.remove('active'); }
+
+  function calcularEsperado() {
+    const prodId = parseInt(document.getElementById('rendProducto').value);
+    const masas = parseInt(document.getElementById('rendMasas').value) || 0;
+    const receta = recetas.find(r => r.id === prodId);
+    if (receta && masas > 0) {
+      document.getElementById('rendEsperado').value = receta.unidadesPorMasa * masas;
+    } else {
+      document.getElementById('rendEsperado').value = '';
+    }
+    calcularDesviacion();
+  }
+
+  function calcularDesviacion() {
+    const esperado = parseInt(document.getElementById('rendEsperado').value) || 0;
+    const real = parseInt(document.getElementById('rendReal').value) || 0;
+    const box = document.getElementById('desviacionBox');
+    if (esperado === 0 || real === 0) { box.style.display = 'none'; return; }
+    const dif = real - esperado;
+    const pct = ((dif / esperado) * 100).toFixed(1);
+    let clase, icono, titulo, texto;
+    if (Math.abs(pct) < 3) {
+      clase = 'alert-info';
+      icono = '✅';
+      titulo = 'Dentro del margen aceptable';
+      texto = `Desviación de ${pct}% (${dif > 0 ? '+' : ''}${dif} unidades)`;
+    } else if (dif > 0) {
+      clase = 'alert-info';
+      icono = '📈';
+      titulo = 'Sobrecumplimiento';
+      texto = `+${pct}% sobre lo esperado (+${dif} unidades). Valor extra: $${(dif * (recetas.find(r => r.id === parseInt(document.getElementById('rendProducto').value))?.precioVenta || 0)).toFixed(2)} CUP`;
+    } else {
+      clase = 'alert-danger';
+      icono = '⚠️';
+      titulo = 'Merma detectada';
+      texto = `${pct}% bajo lo esperado (${dif} unidades). Pérdida: $${(Math.abs(dif) * (recetas.find(r => r.id === parseInt(document.getElementById('rendProducto').value))?.precioVenta || 0)).toFixed(2)} CUP`;
+    }
+    box.className = `alert-banner ${clase} mb-4`;
+    box.innerHTML = `<span class="text-2xl">${icono}</span><div><strong>${titulo}</strong><div class="text-sm mt-1">${texto}</div></div>`;
+    box.style.display = 'flex';
+  }
+
+  function guardarRendimiento(e) {
+    e.preventDefault();
+    const prodId = parseInt(document.getElementById('rendProducto').value);
+    const receta = recetas.find(r => r.id === prodId);
+    const masas = parseInt(document.getElementById('rendMasas').value);
+    const esperado = parseInt(document.getElementById('rendEsperado').value);
+    const real = parseInt(document.getElementById('rendReal').value);
+    const registro = {
+      id: Date.now(),
+      hora: new Date().toTimeString().slice(0,5),
+      producto: receta.nombre,
+      panadero: document.getElementById('rendPanadero').value,
+      masas, esperado, real,
+      causa: document.getElementById('rendCausa').value,
+      accion: document.getElementById('rendAccion').value,
+      notas: document.getElementById('rendNotas').value,
+      fecha: new Date().toISOString().split('T')[0]
+    };
+    registrosRendimiento.push(registro);
+    localStorage.setItem('rendimiento', JSON.stringify(registrosRendimiento));
+    closeRendimientoModal();
+    renderRendimiento();
+    alert('✅ Registro guardado correctamente');
+  }
+
+  function renderRendimiento() {
+    const tbody = document.getElementById('rendimientoBody');
+    const tfoot = document.getElementById('rendimientoFoot');
+    tbody.innerHTML = '';
+    
+    const filtroPan = document.getElementById('filtroPanadero').value;
+    const filtroProd = document.getElementById('filtroProducto').value;
+    
+    let totalEsperado = 0, totalReal = 0, totalSobre = 0, totalMerma = 0;
+    const causasCount = {};
+    const panaderosStats = {};
+    
+    let filtered = registrosRendimiento.filter(r => r.fecha === '2026-09-22');
+    if (filtroPan) filtered = filtered.filter(r => r.panadero === filtroPan);
+    if (filtroProd) filtered = filtered.filter(r => r.producto === filtroProd);
+    
+    filtered.forEach(r => {
+      const dif = r.real - r.esperado;
+      const pct = ((dif / r.esperado) * 100).toFixed(1);
+      const receta = recetas.find(x => x.nombre === r.producto);
+      const precio = receta?.precioVenta || 0;
+      
+      let claseDesv, icono;
+      if (Math.abs(pct) < 3) { claseDesv = 'desviacion-ok'; icono = '✅'; }
+      else if (dif > 0) { claseDesv = 'desviacion-positive'; icono = '📈'; totalSobre += dif; }
+      else { claseDesv = 'desviacion-negative'; icono = '⚠️'; totalMerma += Math.abs(dif); }
+      
+      totalEsperado += r.esperado;
+      totalReal += r.real;
+      
+      if (r.causa) causasCount[r.causa] = (causasCount[r.causa] || 0) + 1;
+      if (!panaderosStats[r.panadero]) panaderosStats[r.panadero] = { esperado: 0, real: 0, count: 0 };
+      panaderosStats[r.panadero].esperado += r.esperado;
+      panaderosStats[r.panadero].real += r.real;
+      panaderosStats[r.panadero].count++;
+      
+      tbody.innerHTML += `
+        <tr>
+          <td class="text-stone-500">${r.hora}</td>
+          <td class="font-semibold">${r.producto}</td>
+          <td>${r.panadero}</td>
+          <td>${r.masas}</td>
+          <td>${r.esperado}</td>
+          <td class="font-bold">${r.real}</td>
+          <td class="${claseDesv}">${icono} ${dif > 0 ? '+' : ''}${dif} (${pct}%)</td>
+          <td class="text-xs">${r.causa || '-'}</td>
+          <td class="text-xs">${r.accion || '-'}</td>
+          <td><button onclick="verDetalle(${r.id})" class="text-amber-700 text-xs hover:underline">Ver</button></td>
+        </tr>`;
+    });
+    
+    const eficiencia = totalEsperado > 0 ? ((totalReal / totalEsperado) * 100).toFixed(1) : 0;
+    tfoot.innerHTML = `
+      <tr class="bg-amber-50 font-bold">
+        <td colspan="4">TOTALES</td>
+        <td>${totalEsperado}</td>
+        <td>${totalReal}</td>
+        <td class="${totalReal >= totalEsperado ? 'desviacion-positive' : 'desviacion-negative'}">${totalReal - totalEsperado > 0 ? '+' : ''}${totalReal - totalEsperado} (${eficiencia}%)</td>
+        <td colspan="3"></td>
+      </tr>`;
+    
+    // KPIs
+    document.getElementById('kpiEficiencia').textContent = eficiencia + '%';
+    document.getElementById('kpiSobre').textContent = '+' + totalSobre + ' uds';
+    document.getElementById('kpiMerma').textContent = '-' + totalMerma + ' uds';
+    document.getElementById('kpiRegistros').textContent = filtered.length;
+    
+    // Filtros
+    const panaderos = [...new Set(registrosRendimiento.map(r => r.panadero))];
+    const productos = [...new Set(registrosRendimiento.map(r => r.producto))];
+    document.getElementById('filtroPanadero').innerHTML = '<option value="">Todos los panaderos</option>' + panaderos.map(p => `<option ${p===filtroPan?'selected':''}>${p}</option>`).join('');
+    document.getElementById('filtroProducto').innerHTML = '<option value="">Todos los productos</option>' + productos.map(p => `<option ${p===filtroProd?'selected':''}>${p}</option>`).join('');
+    
+    // Alertas
+    const alertasDiv = document.getElementById('alertasRendimiento');
+    let alertas = '';
+    if (parseFloat(eficiencia) < 95) {
+      alertas += `<div class="alert-banner alert-danger"><span class="text-xl">🚨</span><div><strong>Eficiencia baja:</strong> ${eficiencia}% está por debajo de la meta (95%). Revisa las causas de merma.</div></div>`;
+    }
+    if (totalMerma > 50) {
+      alertas += `<div class="alert-banner alert-warning"><span class="text-xl">⚠️</span><div><strong>Merma alta:</strong> ${totalMerma} unidades perdidas hoy. Valor: $${(totalMerma * 85).toLocaleString()} CUP.</div></div>`;
+    }
+    alertasDiv.innerHTML = alertas;
+    
+    // Top causas
+    const topCausas = document.getElementById('topCausas');
+    const causasArr = Object.entries(causasCount).sort((a,b) => b[1]-a[1]).slice(0,5);
+    const maxCausa = causasArr[0]?.[1] || 1;
+    topCausas.innerHTML = causasArr.length ? causasArr.map(([c, n]) => `
+      <div>
+        <div class="flex justify-between text-sm mb-1"><span>${c}</span><span class="font-bold">${n}x</span></div>
+        <div class="progress-bar"><div class="progress-fill bg-amber-500" style="width:${(n/maxCausa)*100}%"></div></div>
+      </div>`).join('') : '<div class="text-sm text-stone-500">Sin datos</div>';
+    
+    // Ranking panaderos
+    const ranking = document.getElementById('rankingPanaderos');
+    const panaderosArr = Object.entries(panaderosStats).map(([p, s]) => ({
+      nombre: p,
+      eficiencia: ((s.real / s.esperado) * 100).toFixed(1),
+      count: s.count
+    })).sort((a,b) => b.eficiencia - a.eficiencia);
+    ranking.innerHTML = panaderosArr.map((p, i) => {
+      const color = p.eficiencia >= 98 ? 'green' : p.eficiencia >= 95 ? 'amber' : 'red';
+      return `
+        <div class="flex items-center justify-between p-3 bg-stone-50 rounded-lg">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-${color}-100 text-${color}-700 flex items-center justify-center font-bold text-sm">${i+1}</div>
+            <div>
+              <div class="font-semibold text-sm">${p.nombre}</div>
+              <div class="text-xs text-stone-500">${p.count} producciones</div>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="font-bold text-${color}-700">${p.eficiencia}%</div>
+            <div class="text-xs text-stone-500">eficiencia</div>
+          </div>
+        </div>`;
+    }).join('');
+    
+    // Charts
+    renderChartsRendimiento(filtered);
+  }
+
+  function renderChartsRendimiento(data) {
+    // Desviaciones por producto
+    const ctx1 = document.getElementById('chartDesviaciones');
+    if (ctx1._chart) ctx1._chart.destroy();
+    const porProd = {};
+    data.forEach(r => {
+      if (!porProd[r.producto]) porProd[r.producto] = [];
+      porProd[r.producto].push(((r.real - r.esperado) / r.esperado) * 100);
+    });
+    const labels1 = Object.keys(porProd);
+    const promedios1 = labels1.map(p => (porProd[p].reduce((a,b)=>a+b,0) / porProd[p].length).toFixed(1));
+    ctx1._chart = new Chart(ctx1, {
+      type: 'bar',
+      data: {
+        labels: labels1.map(l => l.length > 20 ? l.slice(0,18)+'...' : l),
+        datasets: [{
+          label: 'Desviación %',
+          data: promedios1,
+          backgroundColor: promedios1.map(v => v > 0 ? '#2563eb' : v < 0 ? '#dc2626' : '#16a34a')
+        }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+    
+    // Tendencia 7 días (simulada)
+    const ctx2 = document.getElementById('chartTendencia');
+    if (ctx2._chart) ctx2._chart.destroy();
+    ctx2._chart = new Chart(ctx2, {
+      type: 'line',
+      data: {
+        labels: ['16/09','17/09','18/09','19/09','20/09','21/09','22/09'],
+        datasets: [{
+          label: 'Eficiencia %',
+          data: [94.2, 96.1, 95.8, 97.3, 96.5, 95.9, 96.8],
+          borderColor: '#b45309',
+          backgroundColor: 'rgba(180,83,9,0.1)',
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: { responsive: true, scales: { y: { min: 90, max: 100 } } }
+    });
+  }
+
+  function verDetalle(id) {
+    const r = registrosRendimiento.find(x => x.id === id);
+    if (!r) return;
+    const dif = r.real - r.esperado;
+    const pct = ((dif / r.esperado) * 100).toFixed(1);
+    alert(`📋 Detalle del registro\n\nProducto: ${r.producto}\nHora: ${r.hora}\nPanadero: ${r.panadero}\nMasas: ${r.masas}\nEsperado: ${r.esperado} uds\nReal: ${r.real} uds\nDesviación: ${dif > 0 ? '+' : ''}${dif} (${pct}%)\nCausa: ${r.causa || 'No especificada'}\nAcción: ${r.accion || 'No especificada'}\nNotas: ${r.notas || 'Sin notas'}`);
+  }
+
+  function exportRendimiento() {
+    let csv = 'Fecha,Hora,Producto,Panadero,Masas,Esperado,Real,Desviacion,Porcentaje,Causa,Accion,Notas\n';
+    registrosRendimiento.forEach(r => {
+      const dif = r.real - r.esperado;
+      const pct = ((dif / r.esperado) * 100).toFixed(1);
+      csv += `${r.fecha},${r.hora},"${r.producto}","${r.panadero}",${r.masas},${r.esperado},${r.real},${dif},${pct}%,"${r.causa || ''}","${r.accion || ''}","${r.notas || ''}"\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `rendimiento_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+  }
+
+  // ============ INIT ============
   window.addEventListener('load', () => {
     renderRecetas();
     
@@ -944,32 +1069,10 @@
       data: {
         labels: ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'],
         datasets: [
-          { label: 'Panadería', data: [15200,16800,17400,18200,19100,22400,18450], borderColor: '#b45309', backgroundColor: 'rgba(180,83,9,0.1)', tension: 0.4, fill: true },
-          { label: 'Kiosko', data: [9800,10200,11400,12100,11800,13200,12300], borderColor: '#d97706', backgroundColor: 'rgba(217,119,6,0.1)', tension: 0.4, fill: true },
-          { label: 'Pto 2', data: [7200,7800,8100,8900,9200,10400,9800], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', tension: 0.4, fill: true },
-          { label: 'Mensajeros', data: [5400,6100,6800,7200,7800,8900,8200], borderColor: '#92400e', backgroundColor: 'rgba(146,64,14,0.1)', tension: 0.4, fill: true }
-        ]
-      },
-      options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-    });
-
-    new Chart(document.getElementById('chartDistribucion'), {
-      type: 'doughnut',
-      data: {
-        labels: ['Panadería','Kiosko Manuelita','Punto Venta 2','Mensajeros','Merma'],
-        datasets: [{ data: [45,25,18,10,2], backgroundColor: ['#b45309','#d97706','#f59e0b','#92400e','#dc2626'] }]
-      },
-      options: { plugins: { legend: { position: 'bottom' } } }
-    });
-
-    new Chart(document.getElementById('chartMensual'), {
-      type: 'bar',
-      data: {
-        labels: ['Sem 1','Sem 2','Sem 3','Sem 4'],
-        datasets: [
-          { label: 'Ingresos', data: [285000,312000,298000,340000], backgroundColor: '#b45309' },
-          { label: 'Costos', data: [180000,195000,188000,210000], backgroundColor: '#f59e0b' },
-          { label: 'Utilidad', data: [105000,117000,110000,130000], backgroundColor: '#16a34a' }
+          { label: 'Panadería', data: [15200,16800,17400,18200,19100,22400,18450], borderColor: '#b45309', tension: 0.4, fill: true, backgroundColor: 'rgba(180,83,9,0.1)' },
+          { label: 'Kiosko', data: [9800,10200,11400,12100,11800,13200,12300], borderColor: '#d97706', tension: 0.4, fill: true, backgroundColor: 'rgba(217,119,6,0.1)' },
+          { label: 'Pto 2', data: [7200,7800,8100,8900,9200,10400,9800], borderColor: '#f59e0b', tension: 0.4, fill: true, backgroundColor: 'rgba(245,158,11,0.1)' },
+          { label: 'Mensajeros', data: [5400,6100,6800,7200,7800,8900,8200], borderColor: '#92400e', tension: 0.4, fill: true, backgroundColor: 'rgba(146,64,14,0.1)' }
         ]
       },
       options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
