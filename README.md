@@ -1,4 +1,242 @@
 
+**Cada paso tiene su módulo en el sistema:**
+
+| Paso | Módulo | ¿Quién lo usa? |
+|------|--------|----------------|
+| 1. Comprar harina, levadura, etc. | 📦 Almacén MP | Administrador |
+| 2. Definir cómo se hace cada producto | 📖 Recetas | Administrador / Maestro panadero |
+| 3. Planificar qué producir hoy | 👨‍🍳 Producción | Administrador |
+| 4. Registrar lo que realmente salió del horno | 📈 Control Rendimiento | Panadero / Administrador |
+| 5. Recibir productos terminados en almacén | 🥖 Productos Terminados | Administrador |
+| 6. Enviar a los puntos de venta | 🥖 Productos Terminados | Administrador |
+| 7. Vender al cliente final | 🏪 Puntos de Venta | Cajeros |
+| 8. Cuadrar caja del día | 💰 Caja del Día | Administrador |
+
+---
+
+## 🔐 Acceso al Sistema
+
+### Desde computadora
+
+1. Abre tu navegador (Chrome, Firefox, Edge)
+2. Ve a la dirección que te dio MoviSoft (ej: `https://demo.movisoft.cu`)
+3. Si tiene contraseña, ingrésala
+4. Verás el **Dashboard** con el resumen del día
+
+### Recomendaciones
+
+- ✅ Usa **Chrome** para mejor experiencia
+- ✅ Guarda la dirección en **Favoritos**
+- ✅ No compartas tu contraseña
+- ❌ No uses el sistema desde el celular (aún no está optimizado para móviles)
+
+---
+
+## 📊 Dashboard General
+
+**¿Qué es?** La pantalla de inicio. Te da un "resumen ejecutivo" de todo lo que pasa hoy.
+
+**¿Cuándo usarlo?** Al empezar el día y cuando quieras ver el estado general rápidamente.
+
+### Qué encontrarás
+
+| Sección | Qué muestra |
+|---------|-------------|
+| **Ventas del día** | Total vendido hoy en CUP y comparación con ayer |
+| **Masas producidas** | Cuántas masas se han hecho y harina consumida |
+| **PT en almacén** | Productos terminados disponibles para distribuir |
+| **Merma** | Porcentaje de pérdidas del día |
+| **Gráfico de ventas** | Evolución de ventas por punto (últimos 7 días) |
+| **Productos top** | Los 3 productos más vendidos |
+| **Alertas de stock** | Materias primas que están por acabarse |
+| **Rendimiento hoy** | Eficiencia, sobrecumplimiento y merma |
+
+### Tips
+
+- 💡 Haz clic en **"Ver detalle →"** en cualquier sección para ir al módulo completo
+- 💡 Los números en **verde** son buenos, en **rojo** requieren atención
+
+---
+
+## 📦 Almacén de Materias Primas
+
+**¿Qué es?** Control de los 7 insumos que compras: harina, levadura, núcleo, sal, aceite, azúcar, manteca.
+
+**¿Quién lo usa?** El administrador cuando recibe mercadería o necesita saber cuánto queda.
+
+### Funciones principales
+
+#### 1. Ver el inventario actual
+
+La tabla muestra:
+- **Código** (001-007)
+- **Producto** (nombre del insumo)
+- **UM** (unidad de medida: Kg)
+- **Stock actual** (cuánto tienes)
+- **Stock mínimo** (cuándo debes reabastecer)
+- **Precio compra** (último precio pagado)
+- **Valor total** (stock × precio)
+- **Estado** (OK / Bajo / Crítico)
+
+#### 2. Registrar entrada al almacén
+
+**Cuándo usarlo:** Cuando llega un proveedor con mercadería.
+
+**Pasos:**
+1. Clic en **"+ Entrada al almacén"**
+2. Selecciona el producto (ej: Harina de trigo)
+3. Ingresa la cantidad (ej: 500 Kg)
+4. Ingresa el precio unitario (ej: $85/Kg)
+5. Opcional: número de factura del proveedor
+6. Clic en **"Guardar"**
+
+✅ El sistema actualiza automáticamente el stock y el valor total.
+
+#### 3. Enviar a producción
+
+**Cuándo usarlo:** Cuando vas a empezar a producir y necesitas descontar los insumos.
+
+**Pasos:**
+1. Clic en **"Enviar a producción"**
+2. Selecciona cuántas masas vas a producir
+3. El sistema calcula automáticamente cuánto de cada insumo necesitas (según la receta)
+4. Confirma para descontar del almacén
+
+#### 4. Inventario físico
+
+**Cuándo usarlo:** Una vez al mes (o cuando sospeches que el stock no coincide con la realidad).
+
+**Pasos:**
+1. Clic en **"Inventario físico"**
+2. Cuenta físicamente cada insumo
+3. Ingresa las cantidades reales
+4. El sistema marca las diferencias
+
+---
+
+## 📖 Recetas
+
+**¿Qué es?** El "libro de recetas" digital. Aquí defines cómo se hace cada producto.
+
+**¿Quién lo usa?** El administrador o maestro panadero.
+
+### ¿Por qué es importante?
+
+Sin recetas, el sistema no puede:
+- Calcular cuánto insumo necesitas
+- Detectar mermas
+- Calcular costos reales
+
+### Funciones principales
+
+#### 1. Ver el catálogo de recetas
+
+La tabla muestra todas las recetas con:
+- Nombre del producto
+- Categoría (Panes, Pizzas, Galletas, etc.)
+- Unidades que salen por masa
+- Cantidad de insumos
+- Costo estimado
+- Fecha de última modificación
+
+#### 2. Crear nueva receta
+
+**Cuándo usarlo:** Cuando empiezas a hacer un producto nuevo (ej: empanadas, dulces).
+
+**Pasos:**
+1. Clic en **"+ Nueva receta"**
+2. Llena los datos:
+   - **Nombre del producto** (ej: "Empanada de queso")
+   - **Categoría** (ej: "Otros")
+   - **Unidades por masa** (ej: 12 empanadas por masa)
+   - **Precio de venta** (ej: $150 CUP)
+3. Agrega los **ingredientes**:
+   - Selecciona el insumo (ej: Harina de trigo)
+   - Ingresa la cantidad por masa (ej: 15 Kg)
+   - Repite para cada insumo
+4. Clic en **"Guardar receta"**
+
+✅ El sistema calcula automáticamente el costo estimado.
+
+#### 3. Editar receta existente
+
+**Cuándo usarlo:** Cuando cambias la proporción de ingredientes (ej: le pones más azúcar al pan).
+
+**Pasos:**
+1. Busca la receta en la tabla
+2. Clic en el ícono ✏️ (editar)
+3. Modifica lo que necesites
+4. Clic en **"Guardar"**
+
+⚠️ **Importante:** Si cambias una receta, los cálculos de producción futuros usarán la nueva versión.
+
+#### 4. Duplicar receta
+
+**Cuándo usarlo:** Cuando tienes un producto muy parecido a otro (ej: "Pan suave caña 150g" basado en "Pan suave caña 130g").
+
+**Pasos:**
+1. Clic en el ícono 📋 (duplicar)
+2. Se crea una copia con el nombre "X (copia)"
+3. Edítala para ajustarla
+
+#### 5. Eliminar receta
+
+**Cuándo usarlo:** Cuando dejas de hacer un producto definitivamente.
+
+⚠️ **Cuidado:** Esta acción no se puede deshacer. Si el producto tiene historial de ventas, considera mejor dejarlo pero marcarlo como "inactivo".
+
+---
+
+## 👨‍🍳 Producción
+
+**¿Qué es?** La planificación de lo que se va a producir hoy.
+
+**¿Quién lo usa?** El administrador al inicio del día.
+
+### Funciones principales
+
+#### 1. Crear orden de producción
+
+**Pasos:**
+1. Clic en **"+ Nueva orden"**
+2. Selecciona el producto (ej: Pan Suave caña 130g)
+3. Indica cuántas masas vas a hacer (ej: 15 masas)
+4. El sistema calcula: 15 × 12 = **180 unidades esperadas**
+5. Asigna el panadero responsable
+6. Guarda la orden
+
+✅ La orden aparece en la lista con estado "Programada".
+
+#### 2. Ver el estado de las órdenes
+
+La tabla muestra:
+- **Orden** (código único)
+- **Hora** programada
+- **Producto**
+- **Masas** a producir
+- **Unidades esperadas**
+- **Estado** (Programada / En proceso / Terminada)
+- **Responsable**
+
+#### 3. Marcar orden como terminada
+
+Cuando el panadero termina, se registra en el módulo de **Control de Rendimiento** (ver sección siguiente).
+
+---
+
+## 🥖 Productos Terminados
+
+**¿Qué es?** El almacén de los 22 productos listos para vender. Es el "puente" entre Producción y los Puntos de Venta.
+
+**¿Quién lo usa?** El administrador durante todo el día.
+
+### Flujo de trabajo
+Producción (horno) ──▶ Almacén PT ──▶ Puntos de Venta
+│
+├── Panadería
+├── Kiosko Manuelita
+├── Punto Venta 2
+└── Mensajeros
 ### Funciones principales
 
 #### 1. Ver el inventario de productos terminados
